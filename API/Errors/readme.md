@@ -1,0 +1,1 @@
+﻿Miejsce na klasy związane z obsługą błędów.s

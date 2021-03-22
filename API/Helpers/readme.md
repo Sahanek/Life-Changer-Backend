@@ -1,0 +1,1 @@
+﻿Miejsce na klasy pomocnicze.

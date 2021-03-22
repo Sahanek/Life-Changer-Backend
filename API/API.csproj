@@ -8,12 +8,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Dtos\" />
-    <Folder Include="Errors\" />
-    <Folder Include="Extensions\" />
-    <Folder Include="Middleware\" />
-    <Folder Include="Helpers\" />
-  </ItemGroup>
-
 </Project>

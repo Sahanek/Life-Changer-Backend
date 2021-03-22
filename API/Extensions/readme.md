@@ -1,0 +1,1 @@
+﻿Miejsce na wszystkie klasy rozszerzające inne klasy.

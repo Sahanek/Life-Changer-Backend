@@ -1,0 +1,1 @@
+﻿Miejsce na wszystkie Middleware. np związany z obsugą błędów.

@@ -1,0 +1,1 @@
+﻿Miejsce na wszystkie serwisy. np dla tokenów.

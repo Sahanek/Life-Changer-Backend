@@ -1,0 +1,1 @@
+﻿Miejsce na baze danych i wszystko co z nią związane.
