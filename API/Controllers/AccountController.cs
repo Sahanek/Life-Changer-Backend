@@ -35,7 +35,7 @@ namespace API.Controllers
             {
                 Email = user.Email,
                 Token = "This will be a token ;)",
-                FirstName = user.FirstName
+                UserName = user.UserName
             };
         }
 
@@ -44,9 +44,7 @@ namespace API.Controllers
         {
             var user = new AppUser
             {
-                FirstName = registerDto.FirstName,
-                LastName = registerDto.LastName,
-                UserName = registerDto.Email,
+                UserName = registerDto.UserName,
                 Email = registerDto.Email,
                 Sex = registerDto.Sex, //fix enums later
                 PhoneNumber = registerDto.PhoneNumber
@@ -58,7 +56,7 @@ namespace API.Controllers
 
             return new UserDto
             {
-                FirstName = user.FirstName,
+                UserName = user.UserName,
                 Token = "This will be a token",
                 Email = user.Email
             };

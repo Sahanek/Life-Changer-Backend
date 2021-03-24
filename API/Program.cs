@@ -38,7 +38,7 @@ namespace API
                 }
             }
 
-                host.Run();
+            host.Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
