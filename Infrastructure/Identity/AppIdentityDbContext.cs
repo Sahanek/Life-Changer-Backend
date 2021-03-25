@@ -15,9 +15,12 @@ namespace Infrastructure.Identity
         {
         }
 
-        //It is needed otherwise we get error. It's resolving the problem with primary key creating via IdentityUser. 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            builder.Entity<AppUser>()
+                .Property(e => e.Gender)
+                .HasConversion<string>();
+
             base.OnModelCreating(builder);
         }
     }

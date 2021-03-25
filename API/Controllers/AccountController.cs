@@ -83,7 +83,7 @@ namespace API.Controllers
             {
                 UserName = registerDto.UserName,
                 Email = registerDto.Email,
-                Sex = registerDto.Sex, //fix enums later
+                Gender =(Gender)Enum.Parse(typeof(Gender), registerDto.Gender, true), //fix enums later
                 PhoneNumber = registerDto.PhoneNumber
             };
 
@@ -103,7 +103,7 @@ namespace API.Controllers
         [Authorize]
         public ActionResult<string> GetSecret()
         {
-            return  "secret text";
+            return "secret text";
         }
 
     }

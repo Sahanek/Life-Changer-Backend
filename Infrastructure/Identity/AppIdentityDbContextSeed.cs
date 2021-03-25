@@ -16,7 +16,7 @@ namespace Infrastructure.Identity
             {
                 var user = new AppUser
                 {
-                    Sex = Sex.Male,
+                    Gender = Gender.Male,
                     Email = "greg@test.com",
                     UserName = "Greg", // without it getting warning maybe remove FirstName? 
                     PhoneNumber = "577777777"

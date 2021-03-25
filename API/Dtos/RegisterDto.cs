@@ -12,7 +12,7 @@ namespace API.Dtos
         public string UserName { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
-        public Sex Sex { get; set; }
+        public string Gender { get; set; }
 
         [RegularExpression("^(\\(?\\+?[0 - 9] *\\)?)?[0-9_\\- \\(\\)]*$")]
         public string PhoneNumber { get; set; }
