@@ -1,4 +1,5 @@
 using API.Extensions;
+using API.Middleware;
 using Core.Interfaces;
 using Infrastructure.Identity;
 using Infrastructure.Services;
@@ -64,7 +65,9 @@ namespace API
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"));
             }
-            
+
+            app.ConfigureExceptionHandler();
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
