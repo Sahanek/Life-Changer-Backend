@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -10,29 +11,51 @@ using Microsoft.AspNetCore.Http;
 
 namespace API.Middleware
 {
-    public static class ExceptionMiddleware
+    public class ExceptionMiddleware
     {
-        public static void ConfigureExceptionHandler(this IApplicationBuilder App)
+        private readonly RequestDelegate _next;
+        
+        public ExceptionMiddleware(RequestDelegate next)
         {
-            App.UseExceptionHandler(appError =>
-            {
-                appError.Run(async context =>
-                {
-                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    context.Response.ContentType = "application/json";
-
-                    var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
-
-                    if(contextFeature != null)
-                    {
-                        await context.Response.WriteAsync(new Errors.ErrorDetails
-                        {
-                            StatusCode = context.Response.StatusCode,
-                            Message = "Wystapil blad"
-                        }.ToString()) ;
-                    }
-                });
-            });
+            _next = next;
         }
+
+        public async Task InvokeAsync(HttpContext httpContext)
+        {
+            try
+            {
+                await _next(httpContext);
+            }
+            catch (WebException ex)
+            {
+                await HandleExceptionAsync(httpContext, ex);
+            }
+        }
+
+        private Task HandleExceptionAsync(HttpContext context, WebException exception)
+        {
+            context.Response.ContentType = "application/json";
+
+            using (WebResponse response = exception.Response)
+            {
+                string ErrorMessage = null;
+                HttpWebResponse httpWebResponse = (HttpWebResponse) response;
+
+                using (Stream data = response.GetResponseStream())
+                using (var reader = new StreamReader(data))
+                {
+                     ErrorMessage = reader.ReadToEnd();
+                }
+
+                return context.Response.WriteAsync(new Errors.ErrorDetails()
+                {
+                    StatusCode = (int)httpWebResponse.StatusCode,
+                    Message = ErrorMessage
+                }.ToString()) ;
+
+            }
+
+        }
+        
     }
 }

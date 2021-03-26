@@ -1,5 +1,6 @@
 ﻿using API.Dtos;
 using API.Errors;
+using API.Helpers;
 using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -41,6 +42,7 @@ namespace API.Controllers
                 Token = _tokenService.CreateToken(user),
                 UserName = user.UserName
             };
+
         }
 
 
@@ -58,11 +60,15 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
-            if (user is null) return Unauthorized(new ErrorDetails()); // Give Error response class to Unauthorized when created with code 401
+            if (user is null) return Unauthorized(new ErrorDetails(401, "Wprowadzono zły email!")); 
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 
-            if (!result.Succeeded) return Unauthorized(new ErrorDetails()); //again..
+            if (!result.Succeeded) return Unauthorized(new ErrorDetails(401, "Wprowadzono złe hasło!"));
+
+            var emailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+
+            if (!emailConfirmed) return Unauthorized(new ErrorDetails(401, "Potwierdź swój email."));
 
             return new UserDto
             {
@@ -73,11 +79,11 @@ namespace API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
+        public async Task<ActionResult<bool>> Register(RegisterDto registerDto)
         {
             if (CheckEmailExistsAsync(registerDto.Email).Result.Value)
             {
-                return new BadRequestObjectResult(new Exception("Email it is in use")); //Sth better
+                return new BadRequestObjectResult(new ErrorDetails(400, "Email jest zajęty!")); 
             }
 
             var user = new AppUser
@@ -90,14 +96,14 @@ namespace API.Controllers
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
 
-            if (!result.Succeeded) return BadRequest();// Someday sth better info
+            if (!result.Succeeded) return BadRequest(new ErrorDetails(400, "Nie udało się zarejestrować. Spróbuj jeszcze raz"));
 
-            return new UserDto
-            {
-                UserName = user.UserName,
-                Token = _tokenService.CreateToken(user),
-                Email = user.Email
-            };
+            var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Action("ConfirmEmail", "Email", new { confirmationToken, email = user.Email }, Request.Scheme);
+            EmailHelper emailHelper = new();
+            bool emailResponse = await emailHelper.SendConfirmationMail(user.Email, confirmationLink);
+
+            return emailResponse;
         }
 
         [HttpGet("testauth")]

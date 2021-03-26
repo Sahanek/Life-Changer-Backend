@@ -23,6 +23,7 @@ namespace Infrastructure.Identity
                 };
                 
                 await userManager.CreateAsync(user, "ComplexPa$$w0rd");
+                
             }
 
             

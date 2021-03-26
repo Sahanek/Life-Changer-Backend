@@ -37,6 +37,13 @@ namespace API.Extensions
                         ValidateAudience = false
                     };
                 });
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = 8;
+
+                //options.SignIn.RequireConfirmedEmail = true;
+            });
 
             return services;
         }
