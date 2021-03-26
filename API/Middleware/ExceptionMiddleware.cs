@@ -38,7 +38,7 @@ namespace API.Middleware
 
             using (WebResponse response = exception.Response)
             {
-                string ErrorMessage = "No message";
+                string ErrorMessage = null;
                 HttpWebResponse httpWebResponse = (HttpWebResponse) response;
 
                 using (Stream data = response.GetResponseStream())

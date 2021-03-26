@@ -1,4 +1,5 @@
 ﻿using API.Dtos;
+using API.Errors;
 using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -57,11 +58,11 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
-            if (user is null) return Unauthorized(); // Give Error response class to Unauthorized when created with code 401
+            if (user is null) return Unauthorized(new ErrorDetails(401)); 
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 
-            if (!result.Succeeded) return Unauthorized(); //again..
+            if (!result.Succeeded) return Unauthorized(new ErrorDetails(401)); 
 
             return new UserDto
             {
@@ -76,7 +77,7 @@ namespace API.Controllers
         {
             if (CheckEmailExistsAsync(registerDto.Email).Result.Value)
             {
-                return new BadRequestObjectResult(new Exception("Email it is in use")); //Sth better
+                return new BadRequestObjectResult(new ErrorDetails(400)); 
             }
 
             var user = new AppUser
@@ -89,7 +90,7 @@ namespace API.Controllers
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
 
-            if (!result.Succeeded) return BadRequest();// Someday sth better info
+            if (!result.Succeeded) return BadRequest(new ErrorDetails(400));
 
             return new UserDto
             {
