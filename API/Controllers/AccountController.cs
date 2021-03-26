@@ -1,4 +1,5 @@
 ﻿using API.Dtos;
+using API.Errors;
 using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -57,11 +58,11 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
-            if (user is null) return Unauthorized(); // Give Error response class to Unauthorized when created with code 401
+            if (user is null) return Unauthorized(new ErrorDetails()); // Give Error response class to Unauthorized when created with code 401
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 
-            if (!result.Succeeded) return Unauthorized(); //again..
+            if (!result.Succeeded) return Unauthorized(new ErrorDetails()); //again..
 
             return new UserDto
             {
