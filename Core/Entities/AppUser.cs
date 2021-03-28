@@ -13,6 +13,8 @@ namespace Core.Entities
     {
         public Gender? Gender { get; set; }
 
+        public DateTime BirthDate { get; set; }
+
         //+ some related entites with user e.g. Agenda
 
     }

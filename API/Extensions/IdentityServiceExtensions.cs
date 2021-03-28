@@ -21,11 +21,15 @@ namespace API.Extensions
             var builder = services.AddIdentityCore<AppUser>();
 
             builder = new IdentityBuilder(builder.UserType, builder.Services);
-            builder.AddEntityFrameworkStores<AppIdentityDbContext>();
+            //Tokens provided is needed to confirm email.
+            builder.AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
             builder.AddSignInManager<SignInManager<AppUser>>();
-
             //SignInManager relieas at authentication 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication(x =>
+            { 
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -42,7 +46,8 @@ namespace API.Extensions
                 options.User.RequireUniqueEmail = true;
                 options.Password.RequiredLength = 8;
 
-                //options.SignIn.RequireConfirmedEmail = true;
+                options.SignIn.RequireConfirmedEmail = true;
+                //options.Tokens.EmailConfirmationTokenProvider = new DataProtectorTokenProvider<AppUser>(dataProtectionProvider = "ASP.NET Identity");
             });
 
             return services;

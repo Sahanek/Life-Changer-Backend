@@ -60,15 +60,15 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
-            if (user is null) return Unauthorized(new ErrorDetails(401, "Wprowadzono zły email!")); 
-
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-
-            if (!result.Succeeded) return Unauthorized(new ErrorDetails(401, "Wprowadzono złe hasło!"));
+            if (user is null) return NotFound(new ErrorDetails(404, "Nie istnieje taki użytkownik."));
 
             var emailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
 
             if (!emailConfirmed) return Unauthorized(new ErrorDetails(401, "Potwierdź swój email."));
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+
+            if (!result.Succeeded) return Unauthorized(new ErrorDetails(401, "Wprowadzono złe hasło."));
 
             return new UserDto
             {
@@ -83,15 +83,16 @@ namespace API.Controllers
         {
             if (CheckEmailExistsAsync(registerDto.Email).Result.Value)
             {
-                return new BadRequestObjectResult(new ErrorDetails(400, "Email jest zajęty!")); 
+                return BadRequest(new ErrorDetails(400, "Email jest zajęty.")); 
             }
 
             var user = new AppUser
             {
                 UserName = registerDto.UserName,
                 Email = registerDto.Email,
-                Gender =(Gender)Enum.Parse(typeof(Gender), registerDto.Gender, true), //fix enums later
-                PhoneNumber = registerDto.PhoneNumber
+                Gender = (Gender)Enum.Parse(typeof(Gender), registerDto.Gender, true), //fix enums later
+                PhoneNumber = registerDto.PhoneNumber,
+                BirthDate = DateTime.Parse(registerDto.BirthDate),
             };
 
             var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -100,10 +101,9 @@ namespace API.Controllers
 
             var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var confirmationLink = Url.Action("ConfirmEmail", "Email", new { confirmationToken, email = user.Email }, Request.Scheme);
-            EmailHelper emailHelper = new();
-            bool emailResponse = await emailHelper.SendConfirmationMail(user.Email, confirmationLink);
+            bool emailResponse = await EmailHelper.SendConfirmationMail(user.Email, confirmationLink);
 
-            return emailResponse;
+            return Ok(emailResponse);
         }
 
         [HttpGet("testauth")]

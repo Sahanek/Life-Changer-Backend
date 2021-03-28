@@ -17,5 +17,6 @@ namespace API.Dtos
         [RegularExpression("^(\\(?\\+?[0 - 9] *\\)?)?[0-9_\\- \\(\\)]*$")]
         public string PhoneNumber { get; set; }
 
+        public string BirthDate { get; set; }
     }
 }

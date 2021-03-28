@@ -16,7 +16,7 @@ namespace API.Controllers
     {
         private readonly UserManager<AppUser> _userManager;
 
-        public EmailController(UserManager<AppUser> userManager, ITokenService tokenService)
+        public EmailController(UserManager<AppUser> userManager)
         {
             _userManager = userManager;
         }
@@ -26,13 +26,13 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(email);
 
-            if (user is null) return BadRequest(new ErrorDetails(400, "Nie ma takiego użytkownika."));
+            if (user is null) return NotFound(new ErrorDetails(404, "Nie ma takiego użytkownika."));
 
             var result = await _userManager.ConfirmEmailAsync(user, token);
 
             if (!result.Succeeded) return BadRequest(new ErrorDetails(400, "Nie udało się potwierdzić maila"));
 
-            return null; //Or maybe user with token?
+            return Ok(); 
         }
 
         [HttpPost("confirm")]
@@ -40,23 +40,23 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
-            if (user is null) return Unauthorized(new ErrorDetails(401, "Wprowadzono zły email!"));
+            if (user is null) return BadRequest(new ErrorDetails(401, "Nie ma takiego użytkownika."));
 
             var result = await _userManager.CheckPasswordAsync(user, loginDto.Password);
 
-            if (result) return Unauthorized(new ErrorDetails(401, "Wprowadzono złe hasło!"));
+            if (!result) return Unauthorized(new ErrorDetails(401, "Wprowadzono złe hasło!"));
 
             var emailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
 
-            if (emailConfirmed) return Unauthorized(new ErrorDetails(401, "Email jest już potwierdzony, zaloguj się."));
+            if (emailConfirmed) return BadRequest();
 
             var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var confirmationLink = Url.Action("ConfirmEmail", "Email", new { confirmationToken, email = user.Email }, Request.Scheme);
-            EmailHelper emailHelper = new();
-            bool emailResponse = await emailHelper.SendConfirmationMail(user.Email, confirmationLink);
+            var confirmationLink = Url.Action("ConfirmEmail", "Email", new { confirmationToken, email = user.Email }, Request.Scheme, "localhost:4200");
+            bool emailResponse = await EmailHelper.SendConfirmationMail(user.Email, confirmationLink);
 
-            if (emailResponse) return BadRequest();
+            if (!emailResponse) return BadRequest();
 
+            //await _userManager.ConfirmEmailAsync(user, confirmationToken); using for manually confirmation
             return Ok();
         }
     }
