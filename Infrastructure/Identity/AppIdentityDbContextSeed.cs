@@ -21,6 +21,7 @@ namespace Infrastructure.Identity
                     UserName = "Greg", // without it getting warning maybe remove FirstName? 
                     PhoneNumber = "577777777",
                     BirthDate = DateTime.Parse("26-01-1998"),
+                    EmailConfirmed = true,
                 };
                 
                 await userManager.CreateAsync(user, "ComplexPa$$w0rd");

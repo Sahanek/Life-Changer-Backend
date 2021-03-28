@@ -56,7 +56,7 @@ namespace API.Controllers
 
             if (!emailResponse) return BadRequest();
 
-            //await _userManager.ConfirmEmailAsync(user, confirmationToken); using for manually confirmation
+            //await _userManager.ConfirmEmailAsync(user, confirmationToken); //using for manually confirmation
             return Ok();
         }
     }
