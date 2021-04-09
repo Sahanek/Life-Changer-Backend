@@ -9,30 +9,32 @@ namespace API.Helpers
 {
     public static class EmailHelper
     {
-        public static async Task<bool> SendConfirmationMail(string userEmail, string confirmationLink)
+        public static async Task SendConfirmationMail(string userEmail, string confirmationLink)
         {
+            await SendMailAsync(userEmail, "Life Changer - confirm your email",
+                $"Hello. Click the link to activate your account: <a href=\"{confirmationLink}\">Link</a>");
+        }
+        public static async Task SendPasswordChangedMail(string userEmail)
+        {
+            await SendMailAsync(userEmail, "Life Changer - your password has been changed",
+                "Hello. Your password has been changed. If you didn't do it, please contact with our support immediately.");
+        }
+        public static async Task SendMailAsync(string toAddress, string subject, string body, bool isBodyHtml = true)
+        {
+
             MailMessage mailMessage = new();
             mailMessage.From = new MailAddress("lifechangertests@gmail.com");
-            mailMessage.To.Add(new MailAddress(userEmail));
+            mailMessage.To.Add(new MailAddress(toAddress));
 
-            mailMessage.Subject = "Life Changer - confirm your email";
-            mailMessage.IsBodyHtml = true;
-            mailMessage.Body = $"Hello. Click the link to activate your account: <a href=\"{confirmationLink}\">Link</a>";
+            mailMessage.Subject = subject;
+            mailMessage.IsBodyHtml = isBodyHtml;
+            mailMessage.Body = body;
 
             SmtpClient client = new("smtp.gmail.com", 587);
             client.EnableSsl = true;
             client.Credentials = new System.Net.NetworkCredential("lifechangertests@gmail.com", "LifeChanger");
 
-            try
-            {
-                await client.SendMailAsync(mailMessage);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error sending message" + ex.Message);
-            }
-            return false;
+            await client.SendMailAsync(mailMessage);
         }
 
     }

@@ -12,7 +12,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{95CA2311-1B2A-4E47-BC55-704C9451FC18}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		..\..\..\Downloads\LICENSE = ..\..\..\Downloads\LICENSE
 	EndProjectSection
 EndProject
 Global

@@ -36,25 +36,26 @@ namespace API.Controllers
         }
 
         [HttpPost("confirm")]
-        public async Task<ActionResult> GenerateConfirmEmail(LoginDto loginDto)
+        public async Task<ActionResult> GenerateConfirmEmail([FromQuery] string email)
         {
-            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            var user = await _userManager.FindByEmailAsync(email);
 
-            if (user is null) return BadRequest(new ErrorDetails(401, "Nie ma takiego użytkownika."));
-
-            var result = await _userManager.CheckPasswordAsync(user, loginDto.Password);
-
-            if (!result) return Unauthorized(new ErrorDetails(401, "Wprowadzono złe hasło!"));
+            if (user is null) return NotFound(new ErrorDetails(404, "Nie ma takiego użytkownika."));
 
             var emailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
 
-            if (emailConfirmed) return BadRequest();
+            if (emailConfirmed) return BadRequest(new ErrorDetails(400, "This email is confirmed." ));
 
             var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var confirmationLink = Url.Action("ConfirmEmail", "Email", new { confirmationToken, email = user.Email }, Request.Scheme, "localhost:4200");
-            bool emailResponse = await EmailHelper.SendConfirmationMail(user.Email, confirmationLink);
-
-            if (!emailResponse) return BadRequest();
+            var confirmationLink = Url.Action("ConfirmEmail", "Email", new { confirmationToken, user.Email }, Request.Scheme, "localhost:4200");
+            try
+            {
+                await EmailHelper.SendConfirmationMail(user.Email, confirmationLink);
+            }
+            catch
+            {
+                return BadRequest(new ErrorDetails(400, "Problem with sending Email. Please try it via login screen"));
+            }
 
             //await _userManager.ConfirmEmailAsync(user, confirmationToken); //using for manually confirmation
             return Ok();

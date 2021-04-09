@@ -45,7 +45,30 @@ namespace API.Controllers
 
         }
 
+        [Authorize]
+        [HttpPut("changepassword")]
+        public async Task<ActionResult<UserDto>> ChangePassword([FromBody] PasswordDto passwords)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
 
+            var user = await _userManager.FindByEmailAsync(email);
+
+            var checkPasswordResult = await _signInManager.CheckPasswordSignInAsync(user, passwords.OldPassword, false);
+
+            if (!checkPasswordResult.Succeeded) return BadRequest(new ErrorDetails(400, "Wrong Password!"));
+
+            var deletePasswordResult = await _userManager.RemovePasswordAsync(user);
+
+            if (!deletePasswordResult.Succeeded) return BadRequest();
+
+            var addPasswordResult = await _userManager.AddPasswordAsync(user, passwords.NewPassword);
+
+            if (!addPasswordResult.Succeeded) return BadRequest();
+
+            await EmailHelper.SendPasswordChangedMail(email);
+
+            return await GetCurrentUser();
+        }
 
         [HttpGet("emailexists")]
         [SwaggerOperation(Summary = "e.g. localhost:5001/api/account/emailexists?email=greg@test.com")]
@@ -83,7 +106,7 @@ namespace API.Controllers
         {
             if (CheckEmailExistsAsync(registerDto.Email).Result.Value)
             {
-                return BadRequest(new ErrorDetails(400, "Email jest zajęty.")); 
+                return BadRequest(new ErrorDetails(400, "Email jest zajęty."));
             }
 
             var user = new AppUser
@@ -101,9 +124,16 @@ namespace API.Controllers
 
             var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var confirmationLink = Url.Action("ConfirmEmail", "Email", new { confirmationToken, email = user.Email }, Request.Scheme);
-            bool emailResponse = await EmailHelper.SendConfirmationMail(user.Email, confirmationLink);
+            try
+            {
+                await EmailHelper.SendConfirmationMail(user.Email, confirmationLink);
+            }
+            catch
+            {
+                return BadRequest("Problem with sending Email. Please try it via login screen");
+            }
 
-            return Ok(emailResponse);
+            return Ok();
         }
 
         [HttpGet("testauth")]
