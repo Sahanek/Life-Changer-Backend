@@ -20,6 +20,9 @@ namespace Infrastructure.Identity
             builder.Entity<AppUser>()
                 .Property(e => e.Gender)
                 .HasConversion<string>();
+            builder.Entity<AppUser>()
+                .Property(e => e.BirthDate)
+                .HasColumnType("date");
 
             base.OnModelCreating(builder);
         }

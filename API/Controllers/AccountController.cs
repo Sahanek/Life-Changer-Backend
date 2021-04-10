@@ -46,6 +46,24 @@ namespace API.Controllers
         }
 
         [Authorize]
+        [HttpGet("userinfo")]
+        public async Task<ActionResult<UserInformationDto>> GetCurrentUserInformation()
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+            return new UserInformationDto
+            {
+                Email = user.Email,
+                UserName = user.UserName,
+                Gender = user.Gender.ToString(),
+                BirthDate = user.BirthDate.ToShortDateString(),
+                PhoneNumber = user.PhoneNumber,
+            };
+
+        }
+
+        [Authorize]
         [HttpPut("changepassword")]
         public async Task<ActionResult<UserDto>> ChangePassword([FromBody] PasswordDto passwords)
         {
@@ -67,7 +85,12 @@ namespace API.Controllers
 
             await EmailHelper.SendPasswordChangedMail(email);
 
-            return await GetCurrentUser();
+            return new UserDto
+            {
+                Email = user.Email,
+                Token = _tokenService.CreateToken(user),
+                UserName = user.UserName
+            };
         }
 
         [HttpGet("emailexists")]
@@ -75,6 +98,13 @@ namespace API.Controllers
         public async Task<ActionResult<bool>> CheckEmailExistsAsync([FromQuery] string email)
         {
             return await _userManager.FindByEmailAsync(email) is not null;
+        }
+
+        [HttpGet("userexists")]
+        [SwaggerOperation(Summary = "e.g. localhost:5001/api/account/userexists?username=Nika")]
+        public async Task<ActionResult<bool>> CheckUserNameExistsAsync([FromQuery] string userName)
+        {
+            return await _userManager.FindByNameAsync(userName) is not null;
         }
 
 
@@ -113,7 +143,7 @@ namespace API.Controllers
             {
                 UserName = registerDto.UserName,
                 Email = registerDto.Email,
-                Gender = (Gender)Enum.Parse(typeof(Gender), registerDto.Gender, true), //fix enums later
+                Gender = (Gender)Enum.Parse(typeof(Gender), registerDto.Gender, true), 
                 PhoneNumber = registerDto.PhoneNumber,
                 BirthDate = DateTime.Parse(registerDto.BirthDate),
             };
