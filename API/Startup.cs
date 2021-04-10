@@ -1,4 +1,5 @@
 using API.Extensions;
+using API.Helpers;
 using API.Middleware;
 using Core.Interfaces;
 using Infrastructure.Identity;
@@ -7,11 +8,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
@@ -32,8 +35,14 @@ namespace API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAutoMapper(typeof(MappingProfiles));
 
-            services.AddControllers();
+            services.AddControllers(options => 
+            {
+                // This makes it possible to use HttpPatch. It uses NewtonsoftJson for this,
+                // and Text.Json for the rest of the operations. 
+                options.InputFormatters.Insert(0, GetJsonPatchInputFormatter()); 
+            });
 
 
             services.AddDbContext<AppIdentityDbContext>(options =>
@@ -46,6 +55,7 @@ namespace API
             {
                 c.EnableAnnotations();
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
+                c.DocumentFilter<JsonPatchDocumentFilter>();
             });
 
             //We do it better someday 
@@ -60,6 +70,7 @@ namespace API
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
 
+            //app.UseMiddleware<ExceptionMiddleware>();
 
             if (env.IsDevelopment())
             {
@@ -83,6 +94,23 @@ namespace API
             {
                 endpoints.MapControllers();
             });
+        }
+
+        //Configures InputFormatter to use NewtonsoftJson for HttpPatch and leaves the rest for Text.Json
+        private static NewtonsoftJsonPatchInputFormatter GetJsonPatchInputFormatter()
+        {
+            var builder = new ServiceCollection()
+                .AddLogging()
+                .AddMvc()
+                .AddNewtonsoftJson()
+                .Services.BuildServiceProvider();
+
+            return builder
+                .GetRequiredService<IOptions<MvcOptions>>()
+                .Value
+                .InputFormatters
+                .OfType<NewtonsoftJsonPatchInputFormatter>()
+                .First();
         }
     }
 }

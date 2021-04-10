@@ -1,10 +1,13 @@
 ﻿using API.Dtos;
 using API.Errors;
 using API.Helpers;
+using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
@@ -20,15 +23,42 @@ namespace API.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ITokenService _tokenService;
+        private readonly IMapper _mapper;
 
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
-            ITokenService tokenService)
+            ITokenService tokenService, IMapper mapper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
+            _mapper = mapper;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="patchDoc"></param>
+        /// <example><
+        /// <returns></returns>
+        [Authorize]
+        [HttpPatch("updateuser")]
+        public async Task<ActionResult> UpdatePartOfUser([FromBody] JsonPatchDocument<UserInformationDto> patchDoc)
+        {
+            if (patchDoc is null) return BadRequest();
+
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            _mapper.Map<JsonPatchDocument<UserInformationDto>, JsonPatchDocument<AppUser>>(patchDoc).ApplyTo(user, ModelState);
+
+            var isValid = TryValidateModel(user);
+            //Console.WriteLine(user.Gender);
+            await _userManager.UpdateAsync(user);
+            if (!isValid) return BadRequest(ModelState);
+
+            return NoContent();
+        }
         [Authorize]
         [HttpGet]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
