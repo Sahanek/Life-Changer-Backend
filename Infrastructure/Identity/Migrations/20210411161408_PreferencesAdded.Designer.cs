@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Identity.Migrations
 {
     [DbContext(typeof(AppIdentityDbContext))]
-    [Migration("20210411154951_PreferencesAdded")]
+    [Migration("20210411161408_PreferencesAdded")]
     partial class PreferencesAdded
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
