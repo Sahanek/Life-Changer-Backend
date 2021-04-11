@@ -14,6 +14,11 @@ namespace Infrastructure.Identity
         public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options) : base(options)
         {
         }
+        public DbSet<Preference> Preferences { get; set; }
+
+        public DbSet<AppUserPreference> AppUserPreferences { get; set; }
+
+        public DbSet<Category> Categories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

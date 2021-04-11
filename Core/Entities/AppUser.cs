@@ -15,6 +15,7 @@ namespace Core.Entities
 
         public DateTime BirthDate { get; set; }
 
+        public List<AppUserPreference> Preferences { get; set; } = new();
         //+ some related entites with user e.g. Agenda
 
     }
