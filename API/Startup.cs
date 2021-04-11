@@ -2,6 +2,7 @@ using API.Extensions;
 using API.Helpers;
 using API.Middleware;
 using Core.Interfaces;
+using Infrastructure.Data;
 using Infrastructure.Identity;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
@@ -64,11 +65,14 @@ namespace API
 
             services.AddCors(opt => opt.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
+            services.AddScoped<PreferencesSeeder>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, PreferencesSeeder seeder)
         {
+            seeder.Seed();
 
             //app.UseMiddleware<ExceptionMiddleware>();
 
