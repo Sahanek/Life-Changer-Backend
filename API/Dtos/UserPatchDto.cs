@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace API.Dtos
 {
-    public class UserInformationDto
+    public class UserPatchDto
     {
         public string UserName { get; set; }
-        public string Email { get; set; }
         public string Gender { get; set; }
 
         [RegularExpression("^(\\(?\\+?[0 - 9] *\\)?)?[0-9_\\- \\(\\)]*$")]

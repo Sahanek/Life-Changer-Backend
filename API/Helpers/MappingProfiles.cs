@@ -14,8 +14,8 @@ namespace API.Helpers
     {
         public MappingProfiles()
         {
-            CreateMap<JsonPatchDocument<UserInformationDto>, JsonPatchDocument<AppUser>>();
-            CreateMap<Operation<UserInformationDto>, Operation<AppUser>>();
+            CreateMap<JsonPatchDocument<UserPatchDto>, JsonPatchDocument<AppUser>>();
+            CreateMap<Operation<UserPatchDto>, Operation<AppUser>>();
         }
     }
 }

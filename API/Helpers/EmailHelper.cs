@@ -14,6 +14,11 @@ namespace API.Helpers
             await SendMailAsync(userEmail, "Life Changer - confirm your email",
                 $"Hello. Click the link to activate your account: <a href=\"{confirmationLink}\">Link</a>");
         }
+        public static async Task SendNewEmailConfirmationMail(string userEmail, string confirmationLink)
+        {
+            await SendMailAsync(userEmail, "Life Changer - confirm your new email",
+                $"Hello. You just changed the email address on your account. Please click the link to confirm your new email: <a href=\"{confirmationLink}\">Link</a>");
+        }
         public static async Task SendPasswordChangedMail(string userEmail)
         {
             await SendMailAsync(userEmail, "Life Changer - your password has been changed",

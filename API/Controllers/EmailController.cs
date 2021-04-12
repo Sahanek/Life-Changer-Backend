@@ -26,13 +26,27 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(email);
 
-            if (user is null) return NotFound(new ErrorDetails(404, "Nie ma takiego użytkownika."));
+            if (user is null) return NotFound(new ErrorDetails(404, "This user does not exist."));
 
             var result = await _userManager.ConfirmEmailAsync(user, token);
 
-            if (!result.Succeeded) return BadRequest(new ErrorDetails(400, "Nie udało się potwierdzić maila"));
+            if (!result.Succeeded) return BadRequest(new ErrorDetails(400, "The email could not be confirmed."));
 
             return Ok(); 
+        }
+
+        [HttpGet("changeemail")]
+        public async Task<ActionResult> ChangeEmail([FromQuery] string token, [FromQuery] string email, [FromQuery] string newEmail )
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user is null) return NotFound(new ErrorDetails(404, "This user does not exist."));
+
+            var result = await _userManager.ChangeEmailAsync(user, newEmail, token);
+
+            if (!result.Succeeded) return BadRequest(new ErrorDetails(400, "The email could not be confirmed."));
+
+            return Ok();
         }
 
         [HttpPost("confirm")]
@@ -40,7 +54,7 @@ namespace API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(email);
 
-            if (user is null) return NotFound(new ErrorDetails(404, "Nie ma takiego użytkownika."));
+            if (user is null) return NotFound(new ErrorDetails(404, "This user does not exist."));
 
             var emailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
 
