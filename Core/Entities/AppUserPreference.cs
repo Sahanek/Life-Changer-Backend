@@ -14,5 +14,6 @@ namespace Core.Entities
         public Preference Preference { get; set; }
         public int PreferenceId { get; set; }
         public int Quantity { get; set; }
+        public int Score { get; set; }
     }
 }
