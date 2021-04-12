@@ -65,14 +65,14 @@ namespace API
 
             services.AddCors(opt => opt.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
-            services.AddScoped<PreferencesSeeder>();
+          
 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, PreferencesSeeder seeder)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            seeder.Seed();
+
 
             //app.UseMiddleware<ExceptionMiddleware>();
 

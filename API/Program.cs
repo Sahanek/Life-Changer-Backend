@@ -1,4 +1,5 @@
 using Core.Entities;
+using Infrastructure.Data;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -30,6 +31,7 @@ namespace API
                     var identityContext = services.GetRequiredService<AppIdentityDbContext>();
                     await identityContext.Database.MigrateAsync();
                     await AppIdentityDbContextSeed.SeedUsersAsync(userManager);
+                    await PreferencesSeeder.SeedAsync(identityContext);
                 }
                 catch (Exception ex)
                 {

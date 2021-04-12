@@ -8,34 +8,31 @@ using Infrastructure.Identity;
 
 namespace Infrastructure.Data
 {
-    public class PreferencesSeeder
+    public static class PreferencesSeeder
     {
-        private readonly AppIdentityDbContext _dbcontext;
-        public PreferencesSeeder(AppIdentityDbContext dbContext)
+ 
+        public static async Task SeedAsync(AppIdentityDbContext dbContext)
         {
-            _dbcontext = dbContext;
-        }
-        public void Seed()
-        {
-            if (_dbcontext.Database.CanConnect())
+
+            if (dbContext.Database.CanConnect())
             {
-                if (!_dbcontext.Categories.Any())
+                if (!dbContext.Categories.Any())
                 {
                     var categories = GetCategories();
-                    _dbcontext.Categories.AddRange(categories);
-                    _dbcontext.SaveChanges();
+                    dbContext.Categories.AddRange(categories);
+                    await dbContext.SaveChangesAsync();
                 }
                 
-                if (!_dbcontext.Preferences.Any())
+                if (!dbContext.Preferences.Any())
                 {
-                    var preferences = GetPreferences();
-                    _dbcontext.Preferences.AddRange(preferences);
-                    _dbcontext.SaveChanges();
+                    var preferences = GetPreferences(dbContext);
+                    dbContext.Preferences.AddRange(preferences);
+                    await dbContext.SaveChangesAsync();
                 }
                 
             }
         }
-        private IEnumerable<Category> GetCategories()
+        private static IEnumerable<Category> GetCategories()
         {
             var categories = new List<Category>
             {
@@ -59,11 +56,11 @@ namespace Infrastructure.Data
             return categories;
         }
         
-        private IEnumerable<Preference> GetPreferences()
+        private static IEnumerable<Preference> GetPreferences(AppIdentityDbContext dbContext)
         {
-            var LoveCategory = _dbcontext.Categories.FirstOrDefault(n => n.Name.Equals("Love"));
-            var HealthCategory = _dbcontext.Categories.FirstOrDefault(n => n.Name.Equals("Sport and health"));
-            var CultureCategory = _dbcontext.Categories.FirstOrDefault(n => n.Name.Equals("Culture and enterntainment"));
+            var LoveCategory = dbContext.Categories.FirstOrDefault(n => n.Name.Equals("Love"));
+            var HealthCategory = dbContext.Categories.FirstOrDefault(n => n.Name.Equals("Sport and health"));
+            var CultureCategory = dbContext.Categories.FirstOrDefault(n => n.Name.Equals("Culture and enterntainment"));
 
             var preferences = new List<Preference>()
             {
