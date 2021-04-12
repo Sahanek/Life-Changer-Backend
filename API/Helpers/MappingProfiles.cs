@@ -16,6 +16,8 @@ namespace API.Helpers
         {
             CreateMap<JsonPatchDocument<UserPatchDto>, JsonPatchDocument<AppUser>>();
             CreateMap<Operation<UserPatchDto>, Operation<AppUser>>();
+            CreateMap<Preference, PreferenceDto>()
+                .ForMember(m => m.Category, c => c.MapFrom(s => s.Category.Name));
         }
     }
 }
