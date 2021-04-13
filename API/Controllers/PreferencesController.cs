@@ -39,7 +39,7 @@ namespace API.Controllers
         //
 
         [HttpPost("GeneratePreferences")]
-        public async Task<ActionResult<UserPreferenceDto>> GenerateUserPreferences([FromBody] ChosenCategoriesDto chosenCategories)
+        public async Task<ActionResult<bool>> GenerateUserPreferences([FromBody] ChosenCategoriesDto chosenCategories)
         {
             var email = User.FindFirstValue(ClaimTypes.Email);
 
@@ -89,6 +89,37 @@ namespace API.Controllers
             return Ok();
 
         }
+
+        [HttpPost("LikedPreferences")]
+        public async Task<ActionResult> UpdateChosenPreferences([FromBody] ChosenCategoriesDto chosenCategories)
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            var AppUserPreferencesOfUser = _dbContext
+                .AppUserPreferences
+                .Where(a => a.AppUserId == user.Id)
+                .ToList();
+
+
+            if(AppUserPreferencesOfUser.Count()==0)
+                return BadRequest(new ErrorDetails(400, "This user didn't chose any preferences"));
+
+            if (AppUserPreferencesOfUser.Count() < chosenCategories.Categories.Count())
+                return BadRequest(new ErrorDetails(400, "Too many arguments"));
+
+            foreach (int Cat in chosenCategories.Categories)
+            {
+                var PreferenceLiked = AppUserPreferencesOfUser.Where(p => p.PreferenceId == Cat).Single();
+                PreferenceLiked.Score = 5;
+            }
+            _dbContext.SaveChanges();
+
+            return Ok();
+
+        }
+
 
 
         [HttpGet]
