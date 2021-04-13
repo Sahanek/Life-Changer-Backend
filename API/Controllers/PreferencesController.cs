@@ -74,7 +74,7 @@ namespace API.Controllers
                 UserPreferencesDtos.Add(UserPreference);
             }
             var AppUserPreferencesInDb = _mapper.Map<List<AppUserPreference>>(UserPreferencesDtos);
-            _dbContext.AddRange(AppUserPreferencesInDb);
+            await _dbContext.AddRangeAsync(AppUserPreferencesInDb);
 
             user.Preferences = AppUserPreferencesInDb;
 
@@ -84,14 +84,14 @@ namespace API.Controllers
                 pref.AppUsers.Add(DataToBeAdded);
             }
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return Ok();
 
         }
 
         [HttpPost("LikedPreferences")]
-        public async Task<ActionResult> UpdateChosenPreferences([FromBody] ChosenCategoriesDto chosenCategories)
+        public async Task<ActionResult> ChangeScoreOfPreferences([FromBody] ChosenCategoriesDto chosenCategories)
         {
             var email = User.FindFirstValue(ClaimTypes.Email);
 
@@ -114,7 +114,7 @@ namespace API.Controllers
                 var PreferenceLiked = AppUserPreferencesOfUser.Where(p => p.PreferenceId == Cat).Single();
                 PreferenceLiked.Score = 5;
             }
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             return Ok();
 
