@@ -50,6 +50,7 @@ namespace API
                 options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));
 
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IPreferenceService, PreferenceService>();
 
             services.AddIdentitySevices(Configuration);
             services.AddSwaggerGen(c =>

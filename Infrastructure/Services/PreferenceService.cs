@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Core.Entities;
+using Core.Interfaces;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Services
 {
 
-    public class PreferenceService
+    public class PreferenceService : IPreferenceService
     {
         private readonly AppIdentityDbContext _dbContext;
         private readonly IMapper _mapper;
@@ -24,22 +25,41 @@ namespace Infrastructure.Services
             _mapper = mapper;
             _userManager = userManager;
         }
-        /*
-        public IEnumerable<PreferenceDto> GetAll()
+        
+        public IEnumerable<Preference> GetAll()
         {
             var preferences = _dbContext
                 .Preferences
                 .Include(r => r.Category)
                 .ToList();
-            List<PreferenceDto> preferencesDtos = _mapper.Map<List<PreferenceDto>>(preferences);
+            
 
-            return preferencesDtos;
+            return preferences;
         }
 
-        */
+        public IEnumerable<Preference> GetPreferencesByCategory(List<int> Categories)
+        {
 
-        //Utwórz UserPreference na bazie usera, preferencji i kategorii
-        //Dodaj listę UserPreference do Preferencji i do Użytkowników po nazwie
+            var NbOfChosenCategories = Categories.Count();
+
+            var preferencesChosen = new List<Preference>();
+
+            for (int i = 0; i < NbOfChosenCategories; i++)
+            {
+                var preferencesOfCategory = _dbContext
+               .Preferences
+               .Include(r => r.Category)
+               .Where(c => c.CategoryID == Categories[i])
+               .ToList();
+                preferencesChosen.AddRange(preferencesOfCategory);
+            }
+
+
+            return preferencesChosen;
+        }
+
+
+
         //Zmień Score dla wybranych preferencji
         //
 

@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Core.Entities;
 
 namespace API.Dtos
 {
     public class UserPreferenceDto
     {
-        public string Username { get; set; }
-        public string Preference { get; set; }
+        public string AppUserId { get; set; }
+        public int PreferenceId { get; set; }
         public int Score { get; set; }
     }
 }
