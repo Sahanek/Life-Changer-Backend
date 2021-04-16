@@ -54,7 +54,7 @@ namespace API.Controllers
                 return BadRequest(new ErrorDetails(400, "Too much arguments - Max. 3"));
 
 
-            var preferencesChosen = _preferenceService.GetPreferencesByCategory(chosenCategories.Categories);
+            var preferencesChosen = await _preferenceService.GetPreferencesByCategory(chosenCategories.Categories);
 
             var preferencesDtos = _mapper.Map<List<PreferenceDto>>(preferencesChosen);
 
@@ -77,13 +77,13 @@ namespace API.Controllers
             await _dbContext.AddRangeAsync(AppUserPreferencesInDb);
 
             user.Preferences = AppUserPreferencesInDb;
-
+            
             foreach (Preference pref in preferencesChosen)
             {
                 var DataToBeAdded = AppUserPreferencesInDb.Where(p => p.PreferenceId == pref.Id).Single();
                 pref.AppUsers.Add(DataToBeAdded);
             }
-
+           
             await _dbContext.SaveChangesAsync();
 
             return Ok();
@@ -125,7 +125,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<PreferenceDto>> GetAll() //this is just for testing
         {
-            var preferences = _preferenceService.GetAll();
+            var preferences = await _preferenceService.GetAll();
 
             var preferencesDtos = _mapper.Map<List<PreferenceDto>>(preferences);
 

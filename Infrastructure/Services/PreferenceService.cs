@@ -26,18 +26,18 @@ namespace Infrastructure.Services
             _userManager = userManager;
         }
         
-        public IEnumerable<Preference> GetAll()
+        public async Task<IEnumerable<Preference>> GetAll()
         {
-            var preferences = _dbContext
+            var preferences = await _dbContext
                 .Preferences
                 .Include(r => r.Category)
-                .ToList();
+                .ToListAsync();
             
 
             return preferences;
         }
 
-        public IEnumerable<Preference> GetPreferencesByCategory(List<int> Categories)
+        public async Task<IEnumerable<Preference>> GetPreferencesByCategory(List<int> Categories)
         {
 
             var NbOfChosenCategories = Categories.Count();
@@ -46,22 +46,17 @@ namespace Infrastructure.Services
 
             for (int i = 0; i < NbOfChosenCategories; i++)
             {
-                var preferencesOfCategory = _dbContext
+                var preferencesOfCategory = await _dbContext
                .Preferences
                .Include(r => r.Category)
                .Where(c => c.CategoryID == Categories[i])
-               .ToList();
+               .ToListAsync();
                 preferencesChosen.AddRange(preferencesOfCategory);
             }
 
 
             return preferencesChosen;
         }
-
-
-
-        //Zmień Score dla wybranych preferencji
-        //
 
 
     }

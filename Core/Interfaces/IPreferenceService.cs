@@ -9,7 +9,7 @@ namespace Core.Interfaces
 {
     public interface IPreferenceService
     {
-        IEnumerable<Preference> GetAll();
-        public IEnumerable<Preference> GetPreferencesByCategory(List<int> Categories);
+        Task<IEnumerable<Preference>> GetAll();
+        Task<IEnumerable<Preference>> GetPreferencesByCategory(List<int> Categories);
     }
 }
