@@ -60,7 +60,13 @@ namespace API.Controllers
 
             var UserPreferencesDtos = new List<UserPreferenceDto>();
 
-            
+
+            if(!await _preferenceService.UpdateUserCategories(chosenCategories.Categories, user))
+            {
+                return Conflict(new ErrorDetails(409, "DB Problem - couldn't save UserCategories"));
+            }
+
+
             //Can't put it into Services - PreferencesDto problem
 
             for(int i=0; i<preferencesDtos.Count();i++)
@@ -97,10 +103,10 @@ namespace API.Controllers
 
             var user = await _userManager.FindByEmailAsync(email);
 
-            var AppUserPreferencesOfUser = _dbContext
+            var AppUserPreferencesOfUser = await _dbContext
                 .AppUserPreferences
                 .Where(a => a.AppUserId == user.Id)
-                .ToList();
+                .ToListAsync();
 
 
             if(AppUserPreferencesOfUser.Count()==0)
@@ -120,7 +126,24 @@ namespace API.Controllers
 
         }
 
+        [HttpGet("UserCategories")]
+        public async Task<ActionResult<UserCategoryDto>> GetUserCategories()
+        {
 
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            var CategoriesOfUser = await _dbContext
+                .Users
+                .Include(r=>r.Categories)
+                .Where(u=>u.Id == user.Id)
+                .FirstOrDefaultAsync();
+
+            var CategoriesOfUserDto = _mapper.Map<UserCategoryDto>(CategoriesOfUser);
+
+            return Ok(CategoriesOfUserDto);
+        }
 
         [HttpGet]
         public async Task<ActionResult<PreferenceDto>> GetAll() //this is just for testing

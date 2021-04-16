@@ -58,6 +58,28 @@ namespace Infrastructure.Services
             return preferencesChosen;
         }
 
+        public async Task<bool> UpdateUserCategories(List<int> Categories, AppUser user)
+        {
+            var CategoriesOfUser = new List<Category>();
+
+            for (int i = 0; i < Categories.Count(); i++)
+            {
+                var CategoryToAdd = await _dbContext
+                    .Categories
+                    .Where(c => c.Id == Categories[i])
+                    .FirstOrDefaultAsync();
+
+                CategoriesOfUser.Add(CategoryToAdd);
+            }
+
+            if(CategoriesOfUser == null)
+            {
+                return false;
+            }
+            user.Categories = CategoriesOfUser;
+            return true;
+        }
+
 
     }
 }

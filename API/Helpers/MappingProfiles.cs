@@ -19,6 +19,8 @@ namespace API.Helpers
             CreateMap<Preference, PreferenceDto>()
                 .ForMember(m => m.CategoryId, c => c.MapFrom(s => s.Category.Id));
             CreateMap<UserPreferenceDto, AppUserPreference>();
+            CreateMap<AppUser, UserCategoryDto>();
+            CreateMap<Category, CategoryDto>();
         }
     }
 }
