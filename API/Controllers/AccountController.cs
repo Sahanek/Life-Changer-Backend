@@ -4,6 +4,7 @@ using API.Helpers;
 using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
@@ -24,15 +25,55 @@ namespace API.Controllers
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ITokenService _tokenService;
         private readonly IMapper _mapper;
+        private readonly GoogleVerification _googleVerification;
 
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
-            ITokenService tokenService, IMapper mapper)
+            ITokenService tokenService, IMapper mapper, GoogleVerification googleVerification)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _tokenService = tokenService;
             _mapper = mapper;
+            _googleVerification = googleVerification;
         }
+
+
+        [HttpPost("ExternalLogin")]
+        public async Task<IActionResult> ExternalLogin([FromBody]ExternalAuthDto externalAuth)
+        {
+            var payload = await _googleVerification.VerifyGoogleToken(externalAuth.Token);
+            if (payload == null)
+                return BadRequest("Invalid External Authentication.");
+
+            var info = new UserLoginInfo("Google", payload.Subject, "GOOGLE" );
+
+            var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+            if (user == null)
+            {
+                user = await _userManager.FindByEmailAsync(payload.Email);
+
+                if (user == null)
+                {
+                    user = new AppUser { Email = payload.Email, UserName = payload.Email };
+                    await _userManager.CreateAsync(user);
+                    await _userManager.AddLoginAsync(user, info);
+                }
+                else
+                {
+                    await _userManager.AddLoginAsync(user, info);
+                }
+            }
+
+            if (user == null)
+                return BadRequest("Invalid External Authentication.");
+
+            //check for the Locked out account
+
+            var token =_tokenService.CreateToken(user);
+            return Ok(token);
+        }
+
+
 
         [Authorize]
         [HttpGet]

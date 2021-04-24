@@ -1,13 +1,16 @@
 using API.Extensions;
 using API.Helpers;
 using API.Middleware;
+using Core.Entities;
 using Core.Interfaces;
 using Infrastructure.Data;
 using Infrastructure.Identity;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +19,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace API
@@ -38,21 +43,46 @@ namespace API
         {
             services.AddAutoMapper(typeof(MappingProfiles));
 
-            services.AddControllers(options => 
+            services.AddControllers(options =>
             {
                 // This makes it possible to use HttpPatch. It uses NewtonsoftJson for this,
                 // and Text.Json for the rest of the operations. 
-                options.InputFormatters.Insert(0, GetJsonPatchInputFormatter()); 
+                options.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
             });
 
 
             services.AddDbContext<AppIdentityDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));
 
+            //Google Auth
+            services.AddIdentityCore<AppUser>()
+                    .AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
+            services.AddAuthentication(options =>
+             {
+                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+             }).AddJwtBearer(options =>
+             {
+                 options.TokenValidationParameters = new TokenValidationParameters
+                 {
+                     ValidateIssuerSigningKey = true,
+                     ValidateIssuer = true,
+                     ValidateAudience = true,
+                     ValidateLifetime = true,
+
+                     ValidIssuer = Configuration["Token:Issuer"],
+                     ValidAudience = Configuration["Token:Audience"],
+                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"])),
+
+
+                 };
+             });
+
+            services.AddScoped<GoogleVerification>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IPreferenceService, PreferenceService>();
 
-            services.AddIdentitySevices(Configuration);
+            //services.AddIdentitySevices(Configuration);
             services.AddSwaggerGen(c =>
             {
                 c.EnableAnnotations();
@@ -66,7 +96,7 @@ namespace API
 
             services.AddCors(opt => opt.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
-          
+
 
         }
 

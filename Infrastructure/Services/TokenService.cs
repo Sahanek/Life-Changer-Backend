@@ -27,8 +27,7 @@ namespace Infrastructure.Services
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.GivenName, user.UserName)
+                new Claim(ClaimTypes.Email, user.Email)
             };
 
             
@@ -37,9 +36,10 @@ namespace Infrastructure.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(7), // change it later
+                Expires = DateTime.Now.AddMinutes(Convert.ToDouble(_config["expiryInMinutes"])), // change it later
                 SigningCredentials = creds,
-                Issuer = _config["Token:Issuer"]
+                Issuer = _config["Token:Issuer"],
+                Audience = _config["Token:Audience"]
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
