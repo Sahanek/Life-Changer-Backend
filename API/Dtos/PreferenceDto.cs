@@ -7,8 +7,11 @@ namespace API.Dtos
 {
     public class PreferenceDto
     {
-        public int Id { get; set; }
+      //  public int Id { get; set; }
         public string Name { get; set; }
-        public int  CategoryId { get; set; }
+        public int AverageTimeInMinutes { get; set; }
+        public bool IsSpontaneus { get; set; }
+        public string ImageUrl { get; set; }
+        public CategoryDto  Category { get; set; }
     }
 }

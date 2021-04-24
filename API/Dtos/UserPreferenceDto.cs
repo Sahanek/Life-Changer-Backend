@@ -9,7 +9,7 @@ namespace API.Dtos
     public class UserPreferenceDto
     {
         public string AppUserId { get; set; }
-        public int PreferenceId { get; set; }
+        public PreferenceDto Preference { get; set; }
         public int Score { get; set; }
     }
 }
