@@ -69,7 +69,7 @@ namespace Infrastructure.Data
                     Name = "Buy sweets",
                     AverageTimeInMinutes = 10,
                     IsSpontaneus = true,
-                    ImageUrl = "google.com",
+                    ImageUrl = "food",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -77,7 +77,7 @@ namespace Infrastructure.Data
                     Name = "Buy wine",
                     AverageTimeInMinutes = 10,
                     IsSpontaneus = true,
-                    ImageUrl = "google.com",
+                    ImageUrl = "food",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -85,7 +85,7 @@ namespace Infrastructure.Data
                     Name = "Go to restaurant",
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "food",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -93,7 +93,7 @@ namespace Infrastructure.Data
                     Name = "Cook favorite dish",
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "food",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -101,7 +101,7 @@ namespace Infrastructure.Data
                     Name = "Go to Opera",
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "monument",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -109,7 +109,7 @@ namespace Infrastructure.Data
                     Name = "Go to theatre",
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "monument",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -117,7 +117,7 @@ namespace Infrastructure.Data
                     Name = "Go to museum",
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "monument",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -125,7 +125,7 @@ namespace Infrastructure.Data
                     Name = "Go to cinema",
                     AverageTimeInMinutes = 200,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "cinema",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -133,7 +133,7 @@ namespace Infrastructure.Data
                     Name = "Watch film together",
                     AverageTimeInMinutes = 160,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "couple film",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -141,7 +141,7 @@ namespace Infrastructure.Data
                     Name = "Play game together",
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "couple film",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -149,7 +149,7 @@ namespace Infrastructure.Data
                     Name = "Spontaneous trip",
                     AverageTimeInMinutes = 300,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "couple stuff",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -157,7 +157,7 @@ namespace Infrastructure.Data
                     Name = "Go for a walk together",
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "walking couple",
                     Category = LoveCategory
                 },
                 new Preference()
@@ -203,14 +203,14 @@ namespace Infrastructure.Data
                     Name = "Aerobics",
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "aerobics",
                     Category = HealthCategory
                 },new Preference()
                 {
                     Name = "Swimming pool",
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "swimming",
                     Category = HealthCategory
                 },
                 new Preference()
@@ -218,14 +218,14 @@ namespace Infrastructure.Data
                     Name = "Bike",
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "bike",
                     Category = HealthCategory
                 },new Preference()
                 {
                     Name = "Nordic-walking",
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "nordic-walking",
                     Category = HealthCategory
                 },
                 new Preference()
@@ -233,14 +233,14 @@ namespace Infrastructure.Data
                     Name = "Roller skating",
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "roller skates",
                     Category = HealthCategory
                 },new Preference()
                 {
                     Name = "Running",
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "run",
                     Category = HealthCategory
                 },
                 new Preference()
@@ -248,14 +248,14 @@ namespace Infrastructure.Data
                     Name = "Gym",
                     AverageTimeInMinutes = 100,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "gym",
                     Category = HealthCategory
                 },new Preference()
                 {
                     Name = "Have a massage",
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "relax",
                     Category = HealthCategory
                 },
                 new Preference()
@@ -263,7 +263,7 @@ namespace Infrastructure.Data
                     Name = "SPA",
                     AverageTimeInMinutes = 300,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "relax",
                     Category = HealthCategory
                 },
                 new Preference()
@@ -271,7 +271,7 @@ namespace Infrastructure.Data
                     Name = "Yoga",
                     AverageTimeInMinutes = 50,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "relax",
                     Category = HealthCategory
                 },
                 new Preference()
@@ -279,7 +279,7 @@ namespace Infrastructure.Data
                     Name = "Meditation",
                     AverageTimeInMinutes = 100,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "relax",
                     Category = HealthCategory
                 },new Preference()
                 {
@@ -331,7 +331,7 @@ namespace Infrastructure.Data
                     Name = "Read book/e-book",
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "book",
                     Category = CultureCategory
                 },
                 new Preference()
@@ -339,7 +339,7 @@ namespace Infrastructure.Data
                     Name = "Buy book/e-book",
                     AverageTimeInMinutes = 30,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "book",
                     Category = CultureCategory
                 },
                 new Preference()
@@ -347,7 +347,7 @@ namespace Infrastructure.Data
                     Name = "Listen to podcast",
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "music",
                     Category = CultureCategory
                 },
                 new Preference()
@@ -355,14 +355,14 @@ namespace Infrastructure.Data
                     Name = "Listen to music",
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "music",
                     Category = CultureCategory
                 },new Preference()
                 {
                     Name = "Listen to audiobook",
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "music",
                     Category = CultureCategory
                 },
                 new Preference()
@@ -370,14 +370,14 @@ namespace Infrastructure.Data
                     Name = "Play a computer/console game",
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "gamer",
                     Category = CultureCategory
                 },new Preference()
                 {
                     Name = "Play a board game",
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "gamer",
                     Category = CultureCategory
                 },
                 new Preference()
@@ -385,14 +385,14 @@ namespace Infrastructure.Data
                     Name = "Meet with your friends",
                     AverageTimeInMinutes = 240,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "party",
                     Category = CultureCategory
                 },new Preference()
                 {
                     Name = "Invite friends",
                     AverageTimeInMinutes = 240,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "party",
                     Category = CultureCategory
                 },
                 new Preference()
@@ -400,14 +400,14 @@ namespace Infrastructure.Data
                     Name = "Go to theatre",
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "arts",
                     Category = CultureCategory
                 },new Preference()
                 {
                     Name = "Go to cinema",
                     AverageTimeInMinutes = 200,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "arts",
                     Category = CultureCategory
                 },
                 new Preference()
@@ -415,14 +415,14 @@ namespace Infrastructure.Data
                     Name = "Go to opera",
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "arts",
                     Category = CultureCategory
                 },new Preference()
                 {
                     Name = "Go to a concert ",
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "concert",
                     Category = CultureCategory
                 },
                 new Preference()
@@ -430,7 +430,7 @@ namespace Infrastructure.Data
                     Name = "Watch a movie",
                     AverageTimeInMinutes = 200,
                     IsSpontaneus = false,
-                    ImageUrl = "google.com",
+                    ImageUrl = "film",
                     Category = CultureCategory
                 },new Preference()
                 {

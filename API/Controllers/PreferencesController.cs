@@ -95,31 +95,48 @@ namespace API.Controllers
         }
 
         [HttpPost("LikedPreferences")]
-        public async Task<ActionResult> ChangeScoreOfPreferences([FromBody] ChosenCategoriesDto chosenCategories)
+        public async Task<ActionResult> ChangeScoreOfPreferences([FromBody] ChosenImagesDto chosenImages)
         {
             var email = User.FindFirstValue(ClaimTypes.Email);
 
             var user = await _userManager.FindByEmailAsync(email);
 
-            var AppUserPreferencesOfUser = await _preferenceService.GetAppUserPreferenceOfUser(user, false);
+            var AppUserPreferencesOfUser = await _preferenceService.GetAppUserPreferenceOfUser(user, true);
+
+            var UserWithStuff = await _preferenceService.GetUserWithNestedEntities(user);
 
             if(AppUserPreferencesOfUser.Count()==0)
                 return BadRequest(new ErrorDetails(400, "This user didn't chose any preferences"));
 
-            if (AppUserPreferencesOfUser.Count() < chosenCategories.Categories.Count())
+            if (AppUserPreferencesOfUser.Count() < chosenImages.Images.Count())
                 return BadRequest(new ErrorDetails(400, "Too many arguments"));
 
-            foreach (int Cat in chosenCategories.Categories)
+            foreach (string Img in chosenImages.Images)
             {
-                var PreferenceLiked = AppUserPreferencesOfUser.Where(p => p.PreferenceId == Cat).FirstOrDefault();
-                if (PreferenceLiked == null)
+                var PreferencesLiked = AppUserPreferencesOfUser.Where(p => p.Preference.ImageUrl == Img)
+                    .ToList();
+
+                if(PreferencesLiked == null)
                 {
-                    String Message = String.Format("This user didn't choose a preference with Id: {0} before", Cat);
+                    String Message = String.Format("This user didn't chose a category" +
+                        "connected to Image: {0}", Img);
                     return BadRequest(new ErrorDetails(400, Message));
                 }
-                PreferenceLiked.Score = 5;
+
+                foreach (AppUserPreference pref in PreferencesLiked)
+                {
+                    
+                    if (pref == null)
+                    {
+                        String Message = String.Format("This user didn't choose a preference " +
+                            "with Name: {0} before", pref.Preference.Name);
+                        return BadRequest(new ErrorDetails(400, Message));
+                    }
+                    pref.Score = 5;
+                }
             }
             await _dbContext.SaveChangesAsync();
+
 
             return Ok();
 
