@@ -67,12 +67,12 @@ namespace API.Controllers
 
             //Can't put it into Services - PreferencesDto problem
 
-            for(int i=0; i<preferencesDtos.Count();i++)
+            foreach(Preference pref in preferencesChosen)
             {
                 var UserPreference = new UserPreferenceDto
                 {
                     AppUserId = user.Id,
-                    Preference = preferencesDtos[i],
+                    Preference = pref,
                     Score = 1,
                 };
                 UserPreferencesDtos.Add(UserPreference);
