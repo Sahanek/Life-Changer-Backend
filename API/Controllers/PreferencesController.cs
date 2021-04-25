@@ -33,10 +33,7 @@ namespace API.Controllers
             _preferenceService = preferenceservice;
         }
 
-        //Utwórz UserPreference na bazie usera, preferencji i kategorii
-        //Dodaj listę UserPreference do Preferencji i do Użytkowników po nazwie
-        //Zmień Score dla wybranych preferencji
-        //
+
 
         [HttpPost("GeneratePreferences")]
         public async Task<ActionResult<bool>> GenerateUserPreferences([FromBody] ChosenCategoriesDto chosenCategories)
@@ -54,21 +51,28 @@ namespace API.Controllers
                 return BadRequest(new ErrorDetails(400, "Too much arguments - Max. 3"));
 
 
-            var preferencesChosen = _preferenceService.GetPreferencesByCategory(chosenCategories.Categories);
+            var preferencesChosen = await _preferenceService.GetPreferencesByCategory(chosenCategories.Categories);
 
             var preferencesDtos = _mapper.Map<List<PreferenceDto>>(preferencesChosen);
 
             var UserPreferencesDtos = new List<UserPreferenceDto>();
 
-            
+
+            if(!await _preferenceService.UpdateUserCategories(chosenCategories.Categories, user))
+            {
+                return Conflict(new ErrorDetails(409, "DB Problem - couldn't add new Category to user, " +
+                    "Maybe you are adding one which already belongs to him? "));
+            }
+
+
             //Can't put it into Services - PreferencesDto problem
 
-            for(int i=0; i<preferencesDtos.Count();i++)
+            foreach(Preference pref in preferencesChosen)
             {
                 var UserPreference = new UserPreferenceDto
                 {
                     AppUserId = user.Id,
-                    PreferenceId = preferencesDtos[i].Id,
+                    Preference = pref,
                     Score = 1,
                 };
                 UserPreferencesDtos.Add(UserPreference);
@@ -80,10 +84,10 @@ namespace API.Controllers
 
             foreach (Preference pref in preferencesChosen)
             {
-                var DataToBeAdded = AppUserPreferencesInDb.Where(p => p.PreferenceId == pref.Id).Single();
+                var DataToBeAdded = AppUserPreferencesInDb.Where(p => p.Preference.Name == pref.Name).FirstOrDefault();
                 pref.AppUsers.Add(DataToBeAdded);
             }
-
+           
             await _dbContext.SaveChangesAsync();
 
             return Ok();
@@ -91,41 +95,167 @@ namespace API.Controllers
         }
 
         [HttpPost("LikedPreferences")]
-        public async Task<ActionResult> ChangeScoreOfPreferences([FromBody] ChosenCategoriesDto chosenCategories)
+        public async Task<ActionResult> ChangeScoreOfPreferences([FromBody] ChosenImagesDto chosenImages)
         {
             var email = User.FindFirstValue(ClaimTypes.Email);
 
             var user = await _userManager.FindByEmailAsync(email);
 
-            var AppUserPreferencesOfUser = _dbContext
-                .AppUserPreferences
-                .Where(a => a.AppUserId == user.Id)
-                .ToList();
+            var AppUserPreferencesOfUser = await _preferenceService.GetAppUserPreferenceOfUser(user, true);
 
+            var UserWithStuff = await _preferenceService.GetUserWithNestedEntities(user);
 
             if(AppUserPreferencesOfUser.Count()==0)
                 return BadRequest(new ErrorDetails(400, "This user didn't chose any preferences"));
 
-            if (AppUserPreferencesOfUser.Count() < chosenCategories.Categories.Count())
+            if (AppUserPreferencesOfUser.Count() < chosenImages.Images.Count())
                 return BadRequest(new ErrorDetails(400, "Too many arguments"));
 
-            foreach (int Cat in chosenCategories.Categories)
+            foreach (string Img in chosenImages.Images)
             {
-                var PreferenceLiked = AppUserPreferencesOfUser.Where(p => p.PreferenceId == Cat).Single();
-                PreferenceLiked.Score = 5;
+                var PreferencesLiked = AppUserPreferencesOfUser.Where(p => p.Preference.ImageUrl == Img)
+                    .ToList();
+
+                if(PreferencesLiked == null)
+                {
+                    String Message = String.Format("This user didn't chose a category" +
+                        "connected to Image: {0}", Img);
+                    return BadRequest(new ErrorDetails(400, Message));
+                }
+
+                foreach (AppUserPreference pref in PreferencesLiked)
+                {
+                    
+                    if (pref == null)
+                    {
+                        String Message = String.Format("This user didn't choose a preference " +
+                            "with Name: {0} before", pref.Preference.Name);
+                        return BadRequest(new ErrorDetails(400, Message));
+                    }
+                    pref.Score = 5;
+                }
             }
             await _dbContext.SaveChangesAsync();
+
 
             return Ok();
 
         }
 
+        [HttpGet("UserPreferences")]
+        public async Task<ActionResult<List<PreferenceDto>>> GetUserPreferences()
+        {
+
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            var UserWithStuff = await _preferenceService.GetUserWithNestedEntities(user);
+
+            var PreferencesOfUser = UserWithStuff.Preferences;
+
+            var ListOfPreferences = new List<Preference>();
+
+
+            foreach(AppUserPreference pref in PreferencesOfUser)
+            {
+                ListOfPreferences.Add(pref.Preference);
+            }
+
+
+            var PreferencesOfUserDto = _mapper.Map<List<PreferenceDto>>(ListOfPreferences);
+
+            return Ok(PreferencesOfUserDto);
+        }
+
+
+        [HttpGet("UserCategories")]
+        public async Task<ActionResult<UserCategoryDto>> GetUserCategories()
+        {
+
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            var CategoriesOfUser = await _dbContext
+                .Users
+                .Include(r=>r.Categories)
+                .Where(u=>u.Id == user.Id)
+                .FirstOrDefaultAsync();
+
+            var CategoriesOfUserDto = _mapper.Map<UserCategoryDto>(CategoriesOfUser);
+
+            return Ok(CategoriesOfUserDto);
+        }
+
+
+        [HttpDelete("UserCategories")]
+        public async Task<ActionResult> RemoveUserCategories([FromBody] ChosenCategoriesDto chosenCategories)
+        {
+
+            if (chosenCategories.Categories.Count() == 0)
+                return BadRequest(new ErrorDetails(400, "Not enough arguments - Expected at least 1"));
+
+            if (chosenCategories.Categories.Count() > 3)
+                return BadRequest(new ErrorDetails(400, "Too much arguments - Max. 3"));
+
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if(user.Categories == null)
+            {
+                return BadRequest(new ErrorDetails(400, "This User has not chosen any category"));
+            }
+
+            var UserWithStuff = await _preferenceService.GetUserWithNestedEntities(user);
+
+            var AppUserPreferencesinDB = await _preferenceService.GetAppUserPreferenceOfUser(user, true);
+
+            var CategoriesOfUser = UserWithStuff.Categories;
+            var PreferencesOfUser = UserWithStuff.Preferences;
+
+            if (CategoriesOfUser == null)
+            {
+                return BadRequest(new ErrorDetails(400, "User has no categories" ));
+            }
+            if (PreferencesOfUser == null)
+            {
+                return BadRequest(new ErrorDetails(400, "User has no preferences"));
+            }
+            if (AppUserPreferencesinDB == null)
+            {
+                return BadRequest(new ErrorDetails(400, "User probably is yet to choose his preferences"));
+            }
+
+            foreach (int cat in chosenCategories.Categories)
+            {
+                var CategoryToBeDeleted = CategoriesOfUser.FirstOrDefault(r => r.Id == cat);
+                if(CategoryToBeDeleted == null)
+                {
+                    return BadRequest(new ErrorDetails(400, "You want to remove a category which doesn't" +
+                        " belong to user"));
+                }
+                var AppUserPreferencesinToBeDeleted = AppUserPreferencesinDB
+                    .Where(d=>d.Preference.Category.Name==CategoryToBeDeleted.Name).ToList();
+                PreferencesOfUser.RemoveAll(s=>s.Preference.Category.Name == CategoryToBeDeleted.Name);
+                CategoriesOfUser.Remove(CategoryToBeDeleted);
+                _dbContext.RemoveRange(AppUserPreferencesinToBeDeleted);
+            }
+
+            user.Categories = CategoriesOfUser;
+            user.Preferences = PreferencesOfUser;
+            await _dbContext.SaveChangesAsync(); 
+            
+            return Ok();
+
+        }
 
 
         [HttpGet]
         public async Task<ActionResult<PreferenceDto>> GetAll() //this is just for testing
         {
-            var preferences = _preferenceService.GetAll();
+            var preferences = await _preferenceService.GetAll();
 
             var preferencesDtos = _mapper.Map<List<PreferenceDto>>(preferences);
 

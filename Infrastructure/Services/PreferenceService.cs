@@ -26,18 +26,18 @@ namespace Infrastructure.Services
             _userManager = userManager;
         }
         
-        public IEnumerable<Preference> GetAll()
+        public async Task<IEnumerable<Preference>> GetAll()
         {
-            var preferences = _dbContext
+            var preferences = await _dbContext
                 .Preferences
                 .Include(r => r.Category)
-                .ToList();
+                .ToListAsync();
             
 
             return preferences;
         }
 
-        public IEnumerable<Preference> GetPreferencesByCategory(List<int> Categories)
+        public async Task<IEnumerable<Preference>> GetPreferencesByCategory(List<int> Categories)
         {
 
             var NbOfChosenCategories = Categories.Count();
@@ -46,11 +46,11 @@ namespace Infrastructure.Services
 
             for (int i = 0; i < NbOfChosenCategories; i++)
             {
-                var preferencesOfCategory = _dbContext
+                var preferencesOfCategory = await _dbContext
                .Preferences
                .Include(r => r.Category)
                .Where(c => c.CategoryID == Categories[i])
-               .ToList();
+               .ToListAsync();
                 preferencesChosen.AddRange(preferencesOfCategory);
             }
 
@@ -58,10 +58,80 @@ namespace Infrastructure.Services
             return preferencesChosen;
         }
 
+        public async Task<bool> UpdateUserCategories(List<int> Categories, AppUser user)
+        {
+            var CategoriesOfUser = new List<Category>();
 
 
-        //Zmień Score dla wybranych preferencji
-        //
+            for (int i = 0; i < Categories.Count(); i++)
+            {
+                if (user.Categories.Where(d => d.Id == Categories[i]).FirstOrDefault() != null)
+                {
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < Categories.Count(); i++)
+            {
+             
+                var CategoryToAdd = await _dbContext
+                    .Categories
+                    .Where(c => c.Id == Categories[i])
+                    .FirstOrDefaultAsync();
+
+
+                CategoriesOfUser.Add(CategoryToAdd);
+            }
+
+            if(CategoriesOfUser == null)
+            {
+                return false;
+            }
+            user.Categories = CategoriesOfUser;
+            return true;
+        }
+
+        public async Task<AppUser> GetUserWithNestedEntities(AppUser user)
+        {
+
+            var UserWithStuff = await _dbContext
+                .Users
+                .Include(r => r.Categories)
+                .Include(b => b.Preferences)
+                .ThenInclude(q => q.Preference)
+                .ThenInclude(s => s.Category)
+                .Where(u => u.Id == user.Id)
+                .FirstOrDefaultAsync();
+
+            return UserWithStuff;
+        }
+
+        public async Task<IEnumerable<AppUserPreference>> GetAppUserPreferenceOfUser(AppUser user, 
+            bool WithNested)
+        {
+
+            var AppUserPreferencesinDB = new List<AppUserPreference>();
+
+            if (WithNested)
+            { 
+                 AppUserPreferencesinDB = await _dbContext
+                .AppUserPreferences
+                .Include(q => q.Preference)
+                .ThenInclude(s => s.Category)
+                .Where(u => u.AppUserId == user.Id)
+                .ToListAsync();
+            }
+            else
+            {
+
+                AppUserPreferencesinDB = await _dbContext
+                .AppUserPreferences
+                .Where(u => u.AppUserId == user.Id)
+                .ToListAsync();
+            }
+            return AppUserPreferencesinDB;
+        }
+
 
 
     }
