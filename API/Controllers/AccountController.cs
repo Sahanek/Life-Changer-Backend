@@ -39,7 +39,7 @@ namespace API.Controllers
 
 
         [HttpPost("ExternalLogin")]
-        public async Task<IActionResult> ExternalLogin([FromBody]ExternalAuthDto externalAuth)
+        public async Task<ActionResult<UserDto>> ExternalLogin([FromBody]ExternalAuthDto externalAuth)
         {
             var payload = await _googleVerification.VerifyGoogleToken(externalAuth.Token);
             if (payload == null)
@@ -69,8 +69,12 @@ namespace API.Controllers
 
             //check for the Locked out account
 
-            var token =_tokenService.CreateToken(user);
-            return Ok(token);
+            return new UserDto
+            {
+                Email = user.Email,
+                Token = _tokenService.CreateToken(user),
+                UserName = user.UserName
+            };
         }
 
 

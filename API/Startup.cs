@@ -56,7 +56,10 @@ namespace API
 
             //Google Auth
             services.AddIdentityCore<AppUser>()
-                    .AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
+                    .AddEntityFrameworkStores<AppIdentityDbContext>()
+                    .AddDefaultTokenProviders()
+                    .AddSignInManager<SignInManager<AppUser>>();
+
             services.AddAuthentication(options =>
              {
                  options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -73,8 +76,6 @@ namespace API
                      ValidIssuer = Configuration["Token:Issuer"],
                      ValidAudience = Configuration["Token:Audience"],
                      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"])),
-
-
                  };
              });
 
