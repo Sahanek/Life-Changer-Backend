@@ -62,12 +62,23 @@ namespace Infrastructure.Services
         {
             var CategoriesOfUser = new List<Category>();
 
+
             for (int i = 0; i < Categories.Count(); i++)
             {
+                if (user.Categories.Where(d => d.Id == Categories[i]).FirstOrDefault() != null)
+                {
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < Categories.Count(); i++)
+            {
+             
                 var CategoryToAdd = await _dbContext
                     .Categories
                     .Where(c => c.Id == Categories[i])
                     .FirstOrDefaultAsync();
+
 
                 CategoriesOfUser.Add(CategoryToAdd);
             }
@@ -79,6 +90,48 @@ namespace Infrastructure.Services
             user.Categories = CategoriesOfUser;
             return true;
         }
+
+        public async Task<AppUser> GetUserWithNestedEntities(AppUser user)
+        {
+
+            var UserWithStuff = await _dbContext
+                .Users
+                .Include(r => r.Categories)
+                .Include(b => b.Preferences)
+                .ThenInclude(q => q.Preference)
+                .ThenInclude(s => s.Category)
+                .Where(u => u.Id == user.Id)
+                .FirstOrDefaultAsync();
+
+            return UserWithStuff;
+        }
+
+        public async Task<IEnumerable<AppUserPreference>> GetAppUserPreferenceOfUser(AppUser user, 
+            bool WithNested)
+        {
+
+            var AppUserPreferencesinDB = new List<AppUserPreference>();
+
+            if (WithNested)
+            { 
+                 AppUserPreferencesinDB = await _dbContext
+                .AppUserPreferences
+                .Include(q => q.Preference)
+                .ThenInclude(s => s.Category)
+                .Where(u => u.AppUserId == user.Id)
+                .ToListAsync();
+            }
+            else
+            {
+
+                AppUserPreferencesinDB = await _dbContext
+                .AppUserPreferences
+                .Where(u => u.AppUserId == user.Id)
+                .ToListAsync();
+            }
+            return AppUserPreferencesinDB;
+        }
+
 
 
     }

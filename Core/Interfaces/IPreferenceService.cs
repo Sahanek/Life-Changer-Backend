@@ -12,5 +12,7 @@ namespace Core.Interfaces
         Task<IEnumerable<Preference>> GetAll();
         Task<IEnumerable<Preference>> GetPreferencesByCategory(List<int> Categories);
         Task<bool> UpdateUserCategories(List<int> Categories, AppUser user);
+        Task<AppUser> GetUserWithNestedEntities(AppUser user);
+        Task<IEnumerable<AppUserPreference>> GetAppUserPreferenceOfUser(AppUser user, bool WithNested);
     }
 }

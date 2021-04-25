@@ -60,7 +60,8 @@ namespace API.Controllers
 
             if(!await _preferenceService.UpdateUserCategories(chosenCategories.Categories, user))
             {
-                return Conflict(new ErrorDetails(409, "DB Problem - couldn't save UserCategories"));
+                return Conflict(new ErrorDetails(409, "DB Problem - couldn't add new Category to user, " +
+                    "Maybe you are adding one which already belongs to him? "));
             }
 
 
@@ -78,7 +79,6 @@ namespace API.Controllers
             }
             var AppUserPreferencesInDb = _mapper.Map<List<AppUserPreference>>(UserPreferencesDtos);
             await _dbContext.AddRangeAsync(AppUserPreferencesInDb);
-            await _dbContext.SaveChangesAsync();
 
             user.Preferences = AppUserPreferencesInDb;
 
@@ -101,11 +101,7 @@ namespace API.Controllers
 
             var user = await _userManager.FindByEmailAsync(email);
 
-            var AppUserPreferencesOfUser = await _dbContext
-                .AppUserPreferences
-                .Where(a => a.AppUserId == user.Id)
-                .ToListAsync();
-
+            var AppUserPreferencesOfUser = await _preferenceService.GetAppUserPreferenceOfUser(user, false);
 
             if(AppUserPreferencesOfUser.Count()==0)
                 return BadRequest(new ErrorDetails(400, "This user didn't chose any preferences"));
@@ -115,7 +111,12 @@ namespace API.Controllers
 
             foreach (int Cat in chosenCategories.Categories)
             {
-                var PreferenceLiked = AppUserPreferencesOfUser.Where(p => p.PreferenceId == Cat).Single();
+                var PreferenceLiked = AppUserPreferencesOfUser.Where(p => p.PreferenceId == Cat).FirstOrDefault();
+                if (PreferenceLiked == null)
+                {
+                    String Message = String.Format("This user didn't choose a preference with Id: {0} before", Cat);
+                    return BadRequest(new ErrorDetails(400, Message));
+                }
                 PreferenceLiked.Score = 5;
             }
             await _dbContext.SaveChangesAsync();
@@ -132,13 +133,7 @@ namespace API.Controllers
 
             var user = await _userManager.FindByEmailAsync(email);
 
-            var UserWithStuff = await _dbContext
-                .Users
-                .Include(r=>r.Preferences)
-                .ThenInclude(c=>c.Preference)
-                .ThenInclude(p=>p.Category)
-                .Where(u => u.Id == user.Id)
-                .FirstOrDefaultAsync();
+            var UserWithStuff = await _preferenceService.GetUserWithNestedEntities(user);
 
             var PreferencesOfUser = UserWithStuff.Preferences;
 
@@ -178,7 +173,7 @@ namespace API.Controllers
 
 
         [HttpDelete("UserCategories")]
-        public async Task<ActionResult<String>> RemoveUserCategories([FromBody] ChosenCategoriesDto chosenCategories)
+        public async Task<ActionResult> RemoveUserCategories([FromBody] ChosenCategoriesDto chosenCategories)
         {
 
             if (chosenCategories.Categories.Count() == 0)
@@ -196,12 +191,9 @@ namespace API.Controllers
                 return BadRequest(new ErrorDetails(400, "This User has not chosen any category"));
             }
 
-            var UserWithStuff = await _dbContext
-                .Users
-                .Include(r => r.Categories)
-                .Include(b => b.Preferences)
-                .Where(u => u.Id == user.Id)
-                .FirstOrDefaultAsync();
+            var UserWithStuff = await _preferenceService.GetUserWithNestedEntities(user);
+
+            var AppUserPreferencesinDB = await _preferenceService.GetAppUserPreferenceOfUser(user, true);
 
             var CategoriesOfUser = UserWithStuff.Categories;
             var PreferencesOfUser = UserWithStuff.Preferences;
@@ -214,8 +206,10 @@ namespace API.Controllers
             {
                 return BadRequest(new ErrorDetails(400, "User has no preferences"));
             }
-
-
+            if (AppUserPreferencesinDB == null)
+            {
+                return BadRequest(new ErrorDetails(400, "User probably is yet to choose his preferences"));
+            }
 
             foreach (int cat in chosenCategories.Categories)
             {
@@ -225,25 +219,18 @@ namespace API.Controllers
                     return BadRequest(new ErrorDetails(400, "You want to remove a category which doesn't" +
                         " belong to user"));
                 }
-                PreferencesOfUser.RemoveAll(s=>s.Preference.CategoryID == cat);
+                var AppUserPreferencesinToBeDeleted = AppUserPreferencesinDB
+                    .Where(d=>d.Preference.Category.Name==CategoryToBeDeleted.Name).ToList();
+                PreferencesOfUser.RemoveAll(s=>s.Preference.Category.Name == CategoryToBeDeleted.Name);
                 CategoriesOfUser.Remove(CategoryToBeDeleted);
+                _dbContext.RemoveRange(AppUserPreferencesinToBeDeleted);
             }
-
 
             user.Categories = CategoriesOfUser;
             user.Preferences = PreferencesOfUser;
-
-            //do poprawienia, żeby te AppUserPreference troszkę bardziej na obiektach próbował
-
-
-/////tutaj ma się dziać to całe usuwanie
-
-
-            await _dbContext.SaveChangesAsync();
-
-            String s = String.Format("Before {0}, now: {0}", 1, 2);
-
-            return Ok(s);
+            await _dbContext.SaveChangesAsync(); 
+            
+            return Ok();
 
         }
 
