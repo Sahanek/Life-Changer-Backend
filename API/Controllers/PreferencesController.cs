@@ -189,15 +189,15 @@ namespace API.Controllers
         }
 
 
-        [HttpDelete("UserCategories")]
-        public async Task<ActionResult> RemoveUserCategories([FromBody] ChosenCategoriesDto chosenCategories)
+        [HttpDelete("UserCategories/{CategoryId}")]
+        public async Task<ActionResult> RemoveUserCategories([FromRoute] int CategoryId)
         {
 
-            if (chosenCategories.Categories.Count() == 0)
-                return BadRequest(new ErrorDetails(400, "Not enough arguments - Expected at least 1"));
+            if (CategoryId <= 0)
+                return BadRequest(new ErrorDetails(400, "CategoryId - from 1 to 3"));
 
-            if (chosenCategories.Categories.Count() > 3)
-                return BadRequest(new ErrorDetails(400, "Too much arguments - Max. 3"));
+            if (CategoryId > 3)
+                return BadRequest(new ErrorDetails(400, "CategoryId - from 1 to 3"));
 
             var email = User.FindFirstValue(ClaimTypes.Email);
 
@@ -228,8 +228,9 @@ namespace API.Controllers
                 return BadRequest(new ErrorDetails(400, "User probably is yet to choose his preferences"));
             }
 
-            foreach (int cat in chosenCategories.Categories)
-            {
+            //foreach (int cat in chosenCategories.Categories)
+            //{ 
+                var cat = CategoryId;
                 var CategoryToBeDeleted = CategoriesOfUser.FirstOrDefault(r => r.Id == cat);
                 if(CategoryToBeDeleted == null)
                 {
@@ -241,7 +242,7 @@ namespace API.Controllers
                 PreferencesOfUser.RemoveAll(s=>s.Preference.Category.Name == CategoryToBeDeleted.Name);
                 CategoriesOfUser.Remove(CategoryToBeDeleted);
                 _dbContext.RemoveRange(AppUserPreferencesinToBeDeleted);
-            }
+            //}
 
             user.Categories = CategoriesOfUser;
             user.Preferences = PreferencesOfUser;
