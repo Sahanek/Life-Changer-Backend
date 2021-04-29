@@ -22,7 +22,8 @@ namespace API.Helpers
             {
                 var settings = new GoogleJsonWebSignature.ValidationSettings()
                 {
-                    Audience = new List<string>() { _config["GoogleAuthSettings:clientId"] }
+                    Audience = new List<string>() { _config["GoogleAuthSettings:clientId"] },
+                    ForceGoogleCertRefresh = true,
                 };
 
                 var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);

@@ -46,7 +46,7 @@ namespace API.Controllers
                 return BadRequest("Invalid External Authentication.");
 
             var info = new UserLoginInfo("Google", payload.Subject, "GOOGLE" );
-
+          
             var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
             if (user == null)
             {
