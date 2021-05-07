@@ -13,6 +13,7 @@ namespace Core.Entities
         public int AverageTimeInMinutes { get; set; }
         public bool IsSpontaneus { get; set; }
         public string ImageUrl { get; set; }
+        public int OffsetToPrepare { get; set; }
         public Category Category { get; set; }
         public int CategoryID { get; set; }
         public List<AppUserPreference> AppUsers { get; set; } = new();
