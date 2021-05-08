@@ -22,6 +22,7 @@ namespace API.Extensions
 
             builder = new IdentityBuilder(builder.UserType, builder.Services);
             //Tokens provided is needed to confirm email.
+            
             builder.AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultTokenProviders();
             builder.AddSignInManager<SignInManager<AppUser>>();
             //SignInManager relieas at authentication 

@@ -1,25 +1,27 @@
 using API.Extensions;
 using API.Helpers;
 using API.Middleware;
+using Core.Entities;
 using Core.Interfaces;
-using Infrastructure.Data;
+using Google.Apis.Auth.AspNetCore3;
 using Infrastructure.Identity;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace API
@@ -38,21 +40,50 @@ namespace API
         {
             services.AddAutoMapper(typeof(MappingProfiles));
 
-            services.AddControllers(options => 
+            services.AddControllers(options =>
             {
                 // This makes it possible to use HttpPatch. It uses NewtonsoftJson for this,
                 // and Text.Json for the rest of the operations. 
-                options.InputFormatters.Insert(0, GetJsonPatchInputFormatter()); 
+                options.InputFormatters.Insert(0, GetJsonPatchInputFormatter());
             });
 
 
             services.AddDbContext<AppIdentityDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));
+            services.AddIdentityCore<AppUser>()
+                .AddEntityFrameworkStores<AppIdentityDbContext>()
+                .AddDefaultTokenProviders().AddSignInManager<SignInManager<AppUser>>(); ;
 
+            //Google Auth
+            services.AddIdentityCore<AppUser>()
+                    .AddEntityFrameworkStores<AppIdentityDbContext>()
+                    .AddDefaultTokenProviders()
+                    .AddSignInManager<SignInManager<AppUser>>();
+
+            services.AddAuthentication(options =>
+             {
+                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+             }).AddJwtBearer(options =>
+             {
+                 options.TokenValidationParameters = new TokenValidationParameters
+                 {
+                     ValidateIssuerSigningKey = true,
+                     ValidateIssuer = true,
+                     ValidateAudience = true,
+                     ValidateLifetime = true,
+
+                     ValidIssuer = Configuration["Token:Issuer"],
+                     ValidAudience = Configuration["Token:Audience"],
+                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Token:Key"])),
+                 };
+             });
+
+            services.AddScoped<GoogleVerification>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IPreferenceService, PreferenceService>();
 
-            services.AddIdentitySevices(Configuration);
+            //services.AddIdentitySevices(Configuration);
             services.AddSwaggerGen(c =>
             {
                 c.EnableAnnotations();
@@ -64,9 +95,14 @@ namespace API
             //services.AddCors(options => options.AddPolicy("CorsPolicy", policy =>
             //    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200")));
 
-            services.AddCors(opt => opt.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+            services.AddCors(corsOptions =>
+            {
+                corsOptions.AddPolicy("fully permissive", configurePolicy => configurePolicy.AllowAnyHeader()
+                .AllowAnyMethod().WithOrigins("http://localhost:4200").AllowCredentials());
+                //localhost:4200 is the default port an angular runs in dev mode with ng serve
+            });
 
-          
+
 
         }
 
@@ -89,9 +125,8 @@ namespace API
             app.UseHttpsRedirection();
 
             app.UseRouting();
-
             //app.UseCors("CorsPolicy");
-            app.UseCors();
+            app.UseCors("fully permissive");
             app.UseAuthentication();
             app.UseAuthorization();
 
