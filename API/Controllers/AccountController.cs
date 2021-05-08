@@ -51,7 +51,7 @@ namespace API.Controllers
             if (payload == null)
                 return BadRequest("Invalid External Authentication.");
 
-            var info = new UserLoginInfo("Google", payload.Subject, "GOOGLE" );
+            var info = new UserLoginInfo("Google", payload.Subject, externalAuth.Provider );
           
             var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
             if (user == null)
@@ -100,63 +100,93 @@ namespace API.Controllers
             };
         }
 
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [Route("gooogle-repose")]
-        public async Task<IActionResult> GoogleResponse()
+        [Authorize]
+        [HttpGet("calendar")]
+        public async Task<ActionResult<string>> GetCalendarId()
         {
-            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            var email = User.FindFirstValue(ClaimTypes.Email);
 
-            var claims = result.Principal.Identities.FirstOrDefault()
-                .Claims.Select(claim => new
-                {
-                    claim.Issuer,
-                    claim.OriginalIssuer,
-                    claim.Type,
-                    claim.Value
-                });
+            var user = await _userManager.FindByEmailAsync(email);
 
-
-            return Content(JsonSerializer.Serialize(claims));
+            return user.CalendarId;
         }
 
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [Route("google-login")]
-        public IActionResult SignInWithGoogle()
+        [Authorize]
+        [HttpPost("updatecalendar")]
+        public async Task<ActionResult<UserDto>> UpdateCalendarId(CalendarDto calendar)
         {
-            var authenticationProperties = _signInManager.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, Url.Action(nameof(HandleExternalLogin)));
-            authenticationProperties.AllowRefresh = true;
-            return Challenge(authenticationProperties, "Google");
-        }
+            var email = User.FindFirstValue(ClaimTypes.Email);
 
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [Route("google-callback")]
-        public async Task<IActionResult> HandleExternalLogin()
-        {
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+            var user = await _userManager.FindByEmailAsync(email);
 
-            if (!result.Succeeded) //user does not exist yet
+            user.CalendarId = calendar.Token;
+
+            return new UserDto
             {
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                var newUser = new AppUser
-                {
-                    UserName = email,
-                    Email = email,
-                    EmailConfirmed = true
-                };
-                var createResult = await _userManager.CreateAsync(newUser);
-                if (!createResult.Succeeded)
-                    throw new Exception(createResult.Errors.Select(e => e.Description).Aggregate((errors, error) => $"{errors}, {error}"));
+                Email = user.Email,
+                Token = _tokenService.CreateToken(user),
+                UserName = user.UserName
+            };
 
-                await _userManager.AddLoginAsync(newUser, info);
-                var newUserClaims = info.Principal.Claims.Append(new Claim("userId", newUser.Id));
-                await _userManager.AddClaimsAsync(newUser, newUserClaims);
-                await _signInManager.SignInAsync(newUser, isPersistent: false);
-                //await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-            }
-
-            return Content("Great");
         }
+
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //[Route("gooogle-repose")]
+        //public async Task<IActionResult> GoogleResponse()
+        //{
+        //    var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        //    var claims = result.Principal.Identities.FirstOrDefault()
+        //        .Claims.Select(claim => new
+        //        {
+        //            claim.Issuer,
+        //            claim.OriginalIssuer,
+        //            claim.Type,
+        //            claim.Value
+        //        });
+
+
+        //    return Content(JsonSerializer.Serialize(claims));
+        //}
+
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //[Route("google-login")]
+        //public IActionResult SignInWithGoogle()
+        //{
+        //    var authenticationProperties = _signInManager.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, Url.Action(nameof(HandleExternalLogin)));
+        //    authenticationProperties.AllowRefresh = true;
+        //    return Challenge(authenticationProperties, "Google");
+        //}
+
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //[Route("google-callback")]
+        //public async Task<IActionResult> HandleExternalLogin()
+        //{
+        //    var info = await _signInManager.GetExternalLoginInfoAsync();
+        //    var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+
+        //    if (!result.Succeeded) //user does not exist yet
+        //    {
+        //        var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+        //        var newUser = new AppUser
+        //        {
+        //            UserName = email,
+        //            Email = email,
+        //            EmailConfirmed = true
+        //        };
+        //        var createResult = await _userManager.CreateAsync(newUser);
+        //        if (!createResult.Succeeded)
+        //            throw new Exception(createResult.Errors.Select(e => e.Description).Aggregate((errors, error) => $"{errors}, {error}"));
+
+        //        await _userManager.AddLoginAsync(newUser, info);
+        //        var newUserClaims = info.Principal.Claims.Append(new Claim("userId", newUser.Id));
+        //        await _userManager.AddClaimsAsync(newUser, newUserClaims);
+        //        await _signInManager.SignInAsync(newUser, isPersistent: false);
+        //        //await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        //    }
+
+        //    return Content("Great");
+        //}
 
         //[ApiExplorerSettings(IgnoreApi = true)]
         //public async Task<IActionResult> Logout()

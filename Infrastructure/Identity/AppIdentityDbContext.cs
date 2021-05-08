@@ -22,12 +22,12 @@ namespace Infrastructure.Identity
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.Entity<AppUser>()
-                .Property(e => e.Gender)
-                .HasConversion<string>();
-            builder.Entity<AppUser>()
-                .Property(e => e.BirthDate)
-                .HasColumnType("date");
+            //builder.Entity<AppUser>()
+            //    .Property(e => e.Gender)
+            //    .HasConversion<string>();
+            //builder.Entity<AppUser>()
+            //    .Property(e => e.BirthDate)
+            //    .HasColumnType("date");
 
             base.OnModelCreating(builder);
         }
