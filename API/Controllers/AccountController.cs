@@ -5,6 +5,10 @@ using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
 using Google.Apis.Auth;
+using Google.Apis.Auth.OAuth2.Flows;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
@@ -94,7 +98,6 @@ namespace API.Controllers
                 Token = _tokenService.CreateToken(user),
                 UserName = user.UserName
             };
-
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
