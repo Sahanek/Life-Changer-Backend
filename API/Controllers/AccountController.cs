@@ -84,7 +84,7 @@ namespace API.Controllers
         }
 
         [HttpGet("{email}")]
-        public async Task<ActionResult<UserDto>> UserForTesting([FromQuery]string email)
+        public async Task<ActionResult<UserDto>> UserForTesting(string email)
         {
             //var email = User.FindFirstValue(ClaimTypes.Email);
 
