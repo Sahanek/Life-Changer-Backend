@@ -45,14 +45,14 @@ namespace API.Controllers
 
 
         [HttpPost("ExternalLogin")]
-        public async Task<ActionResult<UserDto>> ExternalLogin([FromBody]ExternalAuthDto externalAuth)
+        public async Task<ActionResult<UserDto>> ExternalLogin([FromBody] ExternalAuthDto externalAuth)
         {
             var payload = await _googleVerification.VerifyGoogleToken(externalAuth.Token);
             if (payload == null)
                 return BadRequest("Invalid External Authentication.");
 
-            var info = new UserLoginInfo("Google", payload.Subject, externalAuth.Provider );
-          
+            var info = new UserLoginInfo("Google", payload.Subject, externalAuth.Provider);
+
             var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
             if (user == null)
             {
@@ -83,6 +83,19 @@ namespace API.Controllers
             };
         }
 
+        [HttpGet("{email}")]
+        public async Task<ActionResult<UserDto>> UserForTesting([FromQuery]string email)
+        {
+            //var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+            return new UserDto
+            {
+                Email = user.Email,
+                Token = _tokenService.CreateToken(user),
+                UserName = user.UserName
+            };
+        }
 
 
         [Authorize]
