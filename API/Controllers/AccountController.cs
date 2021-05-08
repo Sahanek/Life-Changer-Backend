@@ -15,6 +15,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -95,188 +97,271 @@ namespace API.Controllers
 
         }
 
-        [Authorize]
-        [HttpGet("userinfo")]
-        public async Task<ActionResult<UserInformationDto>> GetCurrentUserInformation()
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [Route("gooogle-repose")]
+        public async Task<IActionResult> GoogleResponse()
         {
-            var email = User.FindFirstValue(ClaimTypes.Email);
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            var user = await _userManager.FindByEmailAsync(email);
-            return new UserInformationDto
+            var claims = result.Principal.Identities.FirstOrDefault()
+                .Claims.Select(claim => new
+                {
+                    claim.Issuer,
+                    claim.OriginalIssuer,
+                    claim.Type,
+                    claim.Value
+                });
+
+
+            return Content(JsonSerializer.Serialize(claims));
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [Route("google-login")]
+        public IActionResult SignInWithGoogle()
+        {
+            var authenticationProperties = _signInManager.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, Url.Action(nameof(HandleExternalLogin)));
+            authenticationProperties.AllowRefresh = true;
+            return Challenge(authenticationProperties, "Google");
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [Route("google-callback")]
+        public async Task<IActionResult> HandleExternalLogin()
+        {
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+
+            if (!result.Succeeded) //user does not exist yet
             {
-                Email = user.Email,
-                UserName = user.UserName,
-                Gender = user.Gender.ToString(),
-                BirthDate = user.BirthDate.ToShortDateString(),
-                PhoneNumber = user.PhoneNumber,
-            };
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                var newUser = new AppUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true
+                };
+                var createResult = await _userManager.CreateAsync(newUser);
+                if (!createResult.Succeeded)
+                    throw new Exception(createResult.Errors.Select(e => e.Description).Aggregate((errors, error) => $"{errors}, {error}"));
 
-        }
-
-        [HttpGet("emailexists")]
-        [SwaggerOperation(Summary = "e.g. localhost:5001/api/account/emailexists?email=greg@test.com")]
-        public async Task<ActionResult<bool>> CheckEmailExistsAsync([FromQuery] string email)
-        {
-            return await _userManager.FindByEmailAsync(email) is not null;
-        }
-
-        [HttpGet("userexists")]
-        [SwaggerOperation(Summary = "e.g. localhost:5001/api/account/userexists?username=Nika")]
-        public async Task<ActionResult<bool>> CheckUserNameExistsAsync([FromQuery] string userName)
-        {
-            return await _userManager.FindByNameAsync(userName) is not null;
-        }
-
-
-        [HttpPost("login")]
-        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
-        {
-            var user = await _userManager.FindByEmailAsync(loginDto.Email);
-
-            if (user is null) return NotFound(new ErrorDetails(404, "This user doesn't exist."));
-
-            var emailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
-
-            if (!emailConfirmed) return Unauthorized(new ErrorDetails(401, "Confirm your email please."));
-
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
-
-            if (!result.Succeeded) return Unauthorized(new ErrorDetails(401, "Wrong password."));
-
-            return new UserDto
-            {
-                Email = user.Email,
-                Token = _tokenService.CreateToken(user),
-                UserName = user.UserName
-            };
-        }
-
-        [HttpPost("register")]
-        public async Task<ActionResult<bool>> Register(RegisterDto registerDto)
-        {
-            if (CheckEmailExistsAsync(registerDto.Email).Result.Value)
-            {
-                return BadRequest(new ErrorDetails(400, "Email is in use."));
+                await _userManager.AddLoginAsync(newUser, info);
+                var newUserClaims = info.Principal.Claims.Append(new Claim("userId", newUser.Id));
+                await _userManager.AddClaimsAsync(newUser, newUserClaims);
+                await _signInManager.SignInAsync(newUser, isPersistent: false);
+                //await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             }
 
-            var user = new AppUser
-            {
-                UserName = registerDto.UserName,
-                Email = registerDto.Email,
-                Gender = (Gender)Enum.Parse(typeof(Gender), registerDto.Gender, true), 
-                PhoneNumber = registerDto.PhoneNumber,
-                BirthDate = DateTime.Parse(registerDto.BirthDate),
-            };
-
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
-
-            if (!result.Succeeded) return BadRequest(new ErrorDetails(400, "Nie udało się zarejestrować."));
-
-            var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var confirmationLink = Url.Action("ConfirmEmail", "Email", new { confirmationToken, email = user.Email }, Request.Scheme);
-            try
-            {
-                await EmailHelper.SendConfirmationMail(user.Email, confirmationLink);
-            }
-            catch
-            {
-                return BadRequest("Problem with sending Email.");
-            }
-
-            return Ok();
+            return Content("Great");
         }
 
-        [Authorize]
-        [HttpPut("changeemail")]
-        public async Task<ActionResult> ChangeEmail([FromBody] EmailDto newEmail)
-        {
-            if (CheckEmailExistsAsync(newEmail.NewEmail).Result.Value)
-            {
-                return BadRequest(new ErrorDetails(400, "Email is in use."));
-            }
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //public async Task<IActionResult> Logout()
+        //{
+        //    await _signInManager.SignOutAsync();
+        //    return Redirect("http://localhost:4200");
+        //}
 
-            var email = User.FindFirstValue(ClaimTypes.Email);
 
-            var user = await _userManager.FindByEmailAsync(email);
 
-            var changeToken = await _userManager.GenerateChangeEmailTokenAsync(user, newEmail.NewEmail);
+        //[Authorize]
+        //[HttpGet]
+        //public async Task<ActionResult<UserDto>> GetCurrentUser()
+        //{
+        //    var email = User.FindFirstValue(ClaimTypes.Email);
 
-            var confirmationLink = Url.Action("ChangeEmail", "Email", new { changeToken, email = user.Email, newEmail = newEmail.NewEmail }, Request.Scheme);
-            try
-            {
-                await EmailHelper.SendNewEmailConfirmationMail(user.Email, confirmationLink);
-            }
-            catch
-            {
-                return BadRequest("Problem with sending Email.");
-            }
+        //    var user = await _userManager.FindByEmailAsync(email);
+        //    return new UserDto
+        //    {
+        //        Email = user.Email,
+        //        Token = _tokenService.CreateToken(user),
+        //        UserName = user.UserName
+        //    };
 
-            return NoContent();
-        }
+        //}
 
-        [Authorize]
-        [HttpPut("changepassword")]
-        public async Task<ActionResult<UserDto>> ChangePassword([FromBody] PasswordDto passwords)
-        {
-            var email = User.FindFirstValue(ClaimTypes.Email);
+        //[Authorize]
+        //[HttpGet("userinfo")]
+        //public async Task<ActionResult<UserInformationDto>> GetCurrentUserInformation()
+        //{
+        //    var email = User.FindFirstValue(ClaimTypes.Email);
 
-            var user = await _userManager.FindByEmailAsync(email);
+        //    var user = await _userManager.FindByEmailAsync(email);
+        //    return new UserInformationDto
+        //    {
+        //        Email = user.Email,
+        //        UserName = user.UserName,
+        //        Gender = user.Gender.ToString(),
+        //        BirthDate = user.BirthDate.ToShortDateString(),
+        //        PhoneNumber = user.PhoneNumber,
+        //    };
 
-            var checkPasswordResult = await _signInManager.CheckPasswordSignInAsync(user, passwords.OldPassword, false);
+        //}
 
-            if (!checkPasswordResult.Succeeded) return BadRequest(new ErrorDetails(400, "Wrong Password!"));
+        //[HttpGet("emailexists")]
+        //[SwaggerOperation(Summary = "e.g. localhost:5001/api/account/emailexists?email=greg@test.com")]
+        //public async Task<ActionResult<bool>> CheckEmailExistsAsync([FromQuery] string email)
+        //{
+        //    return await _userManager.FindByEmailAsync(email) is not null;
+        //}
 
-            var deletePasswordResult = await _userManager.RemovePasswordAsync(user);
+        //[HttpGet("userexists")]
+        //[SwaggerOperation(Summary = "e.g. localhost:5001/api/account/userexists?username=Nika")]
+        //public async Task<ActionResult<bool>> CheckUserNameExistsAsync([FromQuery] string userName)
+        //{
+        //    return await _userManager.FindByNameAsync(userName) is not null;
+        //}
 
-            if (!deletePasswordResult.Succeeded) return BadRequest();
 
-            var addPasswordResult = await _userManager.AddPasswordAsync(user, passwords.NewPassword);
+        //[HttpPost("login")]
+        //public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
+        //{
+        //    var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
-            if (!addPasswordResult.Succeeded) return BadRequest();
+        //    if (user is null) return NotFound(new ErrorDetails(404, "This user doesn't exist."));
 
-            await EmailHelper.SendPasswordChangedMail(email);
+        //    var emailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
 
-            return new UserDto
-            {
-                Email = user.Email,
-                Token = _tokenService.CreateToken(user),
-                UserName = user.UserName
-            };
-        }
+        //    if (!emailConfirmed) return Unauthorized(new ErrorDetails(401, "Confirm your email please."));
 
-        [Authorize]
-        [HttpPatch("updateuser")]
-        public async Task<ActionResult> UpdatePartOfUser([FromBody] JsonPatchDocument<UserPatchDto> patchDoc)
-        {
-            if (patchDoc is null) return BadRequest();
+        //    var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 
-            var email = User.FindFirstValue(ClaimTypes.Email);
+        //    if (!result.Succeeded) return Unauthorized(new ErrorDetails(401, "Wrong password."));
 
-            var user = await _userManager.FindByEmailAsync(email);
+        //    return new UserDto
+        //    {
+        //        Email = user.Email,
+        //        Token = _tokenService.CreateToken(user),
+        //        UserName = user.UserName
+        //    };
+        //}
 
-            _mapper.Map<JsonPatchDocument<UserPatchDto>, JsonPatchDocument<AppUser>>(patchDoc).ApplyTo(user, ModelState);
+        //[HttpPost("register")]
+        //public async Task<ActionResult<bool>> Register(RegisterDto registerDto)
+        //{
+        //    if (CheckEmailExistsAsync(registerDto.Email).Result.Value)
+        //    {
+        //        return BadRequest(new ErrorDetails(400, "Email is in use."));
+        //    }
 
-            var isValid = TryValidateModel(user);
-            //Console.WriteLine(user.Gender);
-            if (!isValid) return BadRequest(ModelState);
+        //    var user = new AppUser
+        //    {
+        //        UserName = registerDto.UserName,
+        //        Email = registerDto.Email,
+        //        Gender = (Gender)Enum.Parse(typeof(Gender), registerDto.Gender, true), 
+        //        PhoneNumber = registerDto.PhoneNumber,
+        //        BirthDate = DateTime.Parse(registerDto.BirthDate),
+        //    };
 
-            var result = await _userManager.UpdateAsync(user);
+        //    var result = await _userManager.CreateAsync(user, registerDto.Password);
 
-            if (!result.Succeeded) return BadRequest(result.Errors);
+        //    if (!result.Succeeded) return BadRequest(new ErrorDetails(400, "Nie udało się zarejestrować."));
 
-            return NoContent();
-        }
+        //    var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        //    var confirmationLink = Url.Action("ConfirmEmail", "Email", new { confirmationToken, email = user.Email }, Request.Scheme);
+        //    try
+        //    {
+        //        await EmailHelper.SendConfirmationMail(user.Email, confirmationLink);
+        //    }
+        //    catch
+        //    {
+        //        return BadRequest("Problem with sending Email.");
+        //    }
 
-        [Authorize]
-        [HttpDelete]
-        public async Task<ActionResult> DeleteUser()
-        {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            var user = await _userManager.FindByEmailAsync(email);
-            var result = await _userManager.DeleteAsync(user);
-            if (!result.Succeeded) return BadRequest(result.Errors);
-            return NoContent();
-        }
+        //    return Ok();
+        //}
+
+        //[Authorize]
+        //[HttpPut("changeemail")]
+        //public async Task<ActionResult> ChangeEmail([FromBody] EmailDto newEmail)
+        //{
+        //    if (CheckEmailExistsAsync(newEmail.NewEmail).Result.Value)
+        //    {
+        //        return BadRequest(new ErrorDetails(400, "Email is in use."));
+        //    }
+
+        //    var email = User.FindFirstValue(ClaimTypes.Email);
+
+        //    var user = await _userManager.FindByEmailAsync(email);
+
+        //    var changeToken = await _userManager.GenerateChangeEmailTokenAsync(user, newEmail.NewEmail);
+
+        //    var confirmationLink = Url.Action("ChangeEmail", "Email", new { changeToken, email = user.Email, newEmail = newEmail.NewEmail }, Request.Scheme);
+        //    try
+        //    {
+        //        await EmailHelper.SendNewEmailConfirmationMail(user.Email, confirmationLink);
+        //    }
+        //    catch
+        //    {
+        //        return BadRequest("Problem with sending Email.");
+        //    }
+
+        //    return NoContent();
+        //}
+
+        //[Authorize]
+        //[HttpPut("changepassword")]
+        //public async Task<ActionResult<UserDto>> ChangePassword([FromBody] PasswordDto passwords)
+        //{
+        //    var email = User.FindFirstValue(ClaimTypes.Email);
+
+        //    var user = await _userManager.FindByEmailAsync(email);
+
+        //    var checkPasswordResult = await _signInManager.CheckPasswordSignInAsync(user, passwords.OldPassword, false);
+
+        //    if (!checkPasswordResult.Succeeded) return BadRequest(new ErrorDetails(400, "Wrong Password!"));
+
+        //    var deletePasswordResult = await _userManager.RemovePasswordAsync(user);
+
+        //    if (!deletePasswordResult.Succeeded) return BadRequest();
+
+        //    var addPasswordResult = await _userManager.AddPasswordAsync(user, passwords.NewPassword);
+
+        //    if (!addPasswordResult.Succeeded) return BadRequest();
+
+        //    await EmailHelper.SendPasswordChangedMail(email);
+
+        //    return new UserDto
+        //    {
+        //        Email = user.Email,
+        //        Token = _tokenService.CreateToken(user),
+        //        UserName = user.UserName
+        //    };
+        //}
+
+        //[Authorize]
+        //[HttpPatch("updateuser")]
+        //public async Task<ActionResult> UpdatePartOfUser([FromBody] JsonPatchDocument<UserPatchDto> patchDoc)
+        //{
+        //    if (patchDoc is null) return BadRequest();
+
+        //    var email = User.FindFirstValue(ClaimTypes.Email);
+
+        //    var user = await _userManager.FindByEmailAsync(email);
+
+        //    _mapper.Map<JsonPatchDocument<UserPatchDto>, JsonPatchDocument<AppUser>>(patchDoc).ApplyTo(user, ModelState);
+
+        //    var isValid = TryValidateModel(user);
+        //    //Console.WriteLine(user.Gender);
+        //    if (!isValid) return BadRequest(ModelState);
+
+        //    var result = await _userManager.UpdateAsync(user);
+
+        //    if (!result.Succeeded) return BadRequest(result.Errors);
+
+        //    return NoContent();
+        //}
+
+        //[Authorize]
+        //[HttpDelete]
+        //public async Task<ActionResult> DeleteUser()
+        //{
+        //    var email = User.FindFirstValue(ClaimTypes.Email);
+        //    var user = await _userManager.FindByEmailAsync(email);
+        //    var result = await _userManager.DeleteAsync(user);
+        //    if (!result.Succeeded) return BadRequest(result.Errors);
+        //    return NoContent();
+        //}
 
 
         [HttpGet("testauth")]

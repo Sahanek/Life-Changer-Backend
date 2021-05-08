@@ -3,7 +3,7 @@ using API.Helpers;
 using API.Middleware;
 using Core.Entities;
 using Core.Interfaces;
-using Infrastructure.Data;
+using Google.Apis.Auth.AspNetCore3;
 using Infrastructure.Identity;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,12 +17,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,6 +50,9 @@ namespace API
 
             services.AddDbContext<AppIdentityDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));
+            services.AddIdentityCore<AppUser>()
+                .AddEntityFrameworkStores<AppIdentityDbContext>()
+                .AddDefaultTokenProviders().AddSignInManager<SignInManager<AppUser>>(); ;
 
             //Google Auth
             services.AddIdentityCore<AppUser>()
@@ -95,7 +95,12 @@ namespace API
             //services.AddCors(options => options.AddPolicy("CorsPolicy", policy =>
             //    policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200")));
 
-            services.AddCors(opt => opt.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+            services.AddCors(corsOptions =>
+            {
+                corsOptions.AddPolicy("fully permissive", configurePolicy => configurePolicy.AllowAnyHeader()
+                .AllowAnyMethod().WithOrigins("http://localhost:4200").AllowCredentials());
+                //localhost:4200 is the default port an angular runs in dev mode with ng serve
+            });
 
 
 
@@ -120,9 +125,8 @@ namespace API
             app.UseHttpsRedirection();
 
             app.UseRouting();
-
             //app.UseCors("CorsPolicy");
-            app.UseCors();
+            app.UseCors("fully permissive");
             app.UseAuthentication();
             app.UseAuthorization();
 
