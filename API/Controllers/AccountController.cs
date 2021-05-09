@@ -134,6 +134,8 @@ namespace API.Controllers
 
             user.CalendarId = calendar.Token;
 
+            await _userManager.UpdateAsync(user);
+
             return new UserDto
             {
                 Email = user.Email,

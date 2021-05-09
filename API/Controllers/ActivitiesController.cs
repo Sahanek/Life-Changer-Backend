@@ -21,14 +21,14 @@ namespace API.Controllers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly AppIdentityDbContext _dbContext;
-        private readonly IPreferenceService _preferenceService;
+        private readonly IActivitiesService _activitiesService;
 
         public ActivitiesController(UserManager<AppUser> userManager, AppIdentityDbContext dbContext,
-            IPreferenceService preferenceService)
+            IActivitiesService activitiesService)
         {
             _userManager = userManager;
             _dbContext = dbContext;
-            _preferenceService = preferenceService;
+            _activitiesService = activitiesService;
         }
 
 
@@ -50,12 +50,16 @@ namespace API.Controllers
             var NewStart = End.AddHours(3);
             var NewEnd = End.AddHours(5);
 
-            
+            var RandomGenerator = new Random();
+
+            var ListOfActivites = await _activitiesService.GetUserNonSpontaneusActivities(user);
+
+            var Index = RandomGenerator.Next(ListOfActivites.Count());
 
 
             var ActivityProposed = new ActivityDto
             {
-                Name = "Basen",
+                Name = ListOfActivites[Index].Preference.Name,
                 DateStart = NewStart.ToString("yyyy-MM-dd"),
                 TimeStart = NewStart.ToShortTimeString(),
                 DateEnd = NewEnd.ToString("yyyy-MM-dd"),
