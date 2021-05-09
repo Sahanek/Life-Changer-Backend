@@ -115,13 +115,13 @@ namespace API.Controllers
 
         [Authorize]
         [HttpGet("calendar")]
-        public async Task<ActionResult<string>> GetCalendarId()
+        public async Task<ActionResult<CalendarDto>> GetCalendarId()
         {
             var email = User.FindFirstValue(ClaimTypes.Email);
 
             var user = await _userManager.FindByEmailAsync(email);
 
-            return user.CalendarId;
+            return new CalendarDto { Token = user.CalendarId };
         }
 
         [Authorize]

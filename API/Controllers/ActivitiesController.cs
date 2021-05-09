@@ -50,10 +50,16 @@ namespace API.Controllers
             var NewStart = End.AddHours(3);
             var NewEnd = End.AddHours(5);
 
-            var RandomGenerator = new Random();
+
 
             var ListOfActivites = await _activitiesService.GetUserNonSpontaneusActivities(user);
 
+            if (ListOfActivites.Count() == 0)
+            {
+                return BadRequest(new ErrorDetails(400, "User didn't choose any preferences"));
+            }
+
+            var RandomGenerator = new Random();
             var Index = RandomGenerator.Next(ListOfActivites.Count());
 
 
