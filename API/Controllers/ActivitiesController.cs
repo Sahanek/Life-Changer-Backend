@@ -56,9 +56,9 @@ namespace API.Controllers
             var ActivityProposed = new ActivityDto
             {
                 Name = "Basen",
-                DateStart = NewStart.ToShortDateString(),
+                DateStart = NewStart.ToString("yyyy-MM-dd"),
                 TimeStart = NewStart.ToShortTimeString(),
-                DateEnd = NewEnd.ToShortDateString(),
+                DateEnd = NewEnd.ToString("yyyy-MM-dd"),
                 TimeEnd = NewEnd.ToShortTimeString()
             };
 
