@@ -25,6 +25,24 @@ namespace Infrastructure.Services
             _userManager = userManager;
         }
 
+        public async Task<IList<AppUserPreference>> GetUserAvailableActivities(AppUser user,
+            int TimeAvailableInMinutes)
+        {
+            var AvailableActivitiesOfUser = new List<AppUserPreference>();
+
+            AvailableActivitiesOfUser = await _dbContext
+            .AppUserPreferences
+            .Include(q => q.Preference)
+            .Where(u => u.AppUserId == user.Id)
+            .Where(p => p.Preference.IsSpontaneus == false) 
+            .Where(d=>d.Preference.AverageTimeInMinutes + 2*d.Preference.OffsetToPrepare <= TimeAvailableInMinutes)
+            .ToListAsync();
+
+            return AvailableActivitiesOfUser;
+
+
+        }
+
         public async Task<IList<AppUserPreference>> GetUserNonSpontaneusActivities(AppUser user)
         {
 

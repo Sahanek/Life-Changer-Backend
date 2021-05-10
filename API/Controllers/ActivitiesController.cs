@@ -110,9 +110,13 @@ namespace API.Controllers
                     EndOfFreeSlot = LatestTimeAvailable;
                 }
             }
-            
 
-            var ListOfActivites = await _activitiesService.GetUserNonSpontaneusActivities(user);
+            if((int)Gap.TotalMinutes < 50)
+            {
+                return BadRequest(new ErrorDetails(400, "User has no time for any activities this day"));
+            }
+
+            var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user, (int)Gap.TotalMinutes);
 
             if (ListOfActivites.Count() == 0)
             {
@@ -122,14 +126,19 @@ namespace API.Controllers
             var RandomGenerator = new Random();
             var Index = RandomGenerator.Next(ListOfActivites.Count());
 
+            var ActivityDuration = TimeSpan.FromMinutes(ListOfActivites[Index].Preference.AverageTimeInMinutes);
+            var ActivityTimeToPrep = TimeSpan.FromMinutes(ListOfActivites[Index].Preference.OffsetToPrepare);
+
+            var StartOfActivity = StartOfFreeSlot + ActivityTimeToPrep;
+            var EndOfActivity = StartOfActivity + ActivityDuration;
 
             var ActivityProposed = new ActivityDto
             {
                 Name = ListOfActivites[Index].Preference.Name,
-                DateStart = StartOfFreeSlot.ToString("yyyy-MM-dd"),
-                TimeStart = StartOfFreeSlot.ToShortTimeString(),
-                DateEnd = EndOfFreeSlot.ToString("yyyy-MM-dd"),
-                TimeEnd = EndOfFreeSlot.ToShortTimeString()
+                DateStart = StartOfActivity.ToString("yyyy-MM-dd"),
+                TimeStart = StartOfActivity.ToShortTimeString(),
+                DateEnd = EndOfActivity.ToString("yyyy-MM-dd"),
+                TimeEnd = EndOfActivity.ToShortTimeString()
             };
 
             return Ok(ActivityProposed);
@@ -154,7 +163,7 @@ namespace API.Controllers
             var Gap = EndOfFreeSlot - StartOfFreeSlot;
 
 
-            var ListOfActivites = await _activitiesService.GetUserNonSpontaneusActivities(user);
+            var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user, (int)Gap.TotalMinutes);
 
             if (ListOfActivites.Count() == 0)
             {
@@ -165,13 +174,19 @@ namespace API.Controllers
             var Index = RandomGenerator.Next(ListOfActivites.Count());
 
 
+            var ActivityDuration = TimeSpan.FromMinutes(ListOfActivites[Index].Preference.AverageTimeInMinutes);
+            var ActivityTimeToPrep = TimeSpan.FromMinutes(ListOfActivites[Index].Preference.OffsetToPrepare);
+
+            var StartOfActivity = StartOfFreeSlot + ActivityTimeToPrep;
+            var EndOfActivity = StartOfActivity + ActivityDuration;
+
             var ActivityProposed = new ActivityDto
             {
                 Name = ListOfActivites[Index].Preference.Name,
-                DateStart = StartOfFreeSlot.ToString("yyyy-MM-dd"),
-                TimeStart = StartOfFreeSlot.ToShortTimeString(),
-                DateEnd = EndOfFreeSlot.ToString("yyyy-MM-dd"),
-                TimeEnd = EndOfFreeSlot.ToShortTimeString()
+                DateStart = StartOfActivity.ToString("yyyy-MM-dd"),
+                TimeStart = StartOfActivity.ToShortTimeString(),
+                DateEnd = EndOfActivity.ToString("yyyy-MM-dd"),
+                TimeEnd = EndOfActivity.ToShortTimeString()
             };
 
             return Ok(ActivityProposed);
