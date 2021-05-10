@@ -25,6 +25,32 @@ namespace Infrastructure.Services
             _userManager = userManager;
         }
 
+        public Preference ChooseActivityByScore(IList<AppUserPreference> PossibleActivities)
+        {
+            var ListToDraw = new List<string>();
+
+            foreach(AppUserPreference Activity in PossibleActivities)
+            {
+                for (int i = 0; i < Activity.Score; i++)
+                    ListToDraw.Add(Activity.Preference.Name);
+            }
+
+            var RandomGenerator = new Random();
+            var Index = RandomGenerator.Next(ListToDraw.Count());
+
+
+            var ActivityDrawn = ListToDraw[Index];
+
+            var ActivityForUser = PossibleActivities
+                .Where(d => d.Preference.Name == ActivityDrawn).FirstOrDefault();
+
+            if (ActivityForUser == null)
+                return null;
+
+            return ActivityForUser.Preference;
+        }
+
+
         public async Task<IList<AppUserPreference>> GetUserAvailableActivities(AppUser user,
             int TimeAvailableInMinutes)
         {

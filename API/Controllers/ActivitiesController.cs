@@ -112,29 +112,27 @@ namespace API.Controllers
             }
 
             if((int)Gap.TotalMinutes < 50)
-            {
                 return BadRequest(new ErrorDetails(400, "User has no time for any activities this day"));
-            }
 
             var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user, (int)Gap.TotalMinutes);
 
             if (ListOfActivites.Count() == 0)
-            {
                 return BadRequest(new ErrorDetails(400, "User didn't choose any preferences"));
-            }
 
-            var RandomGenerator = new Random();
-            var Index = RandomGenerator.Next(ListOfActivites.Count());
+            var ActivityForUser = _activitiesService.ChooseActivityByScore(ListOfActivites);
 
-            var ActivityDuration = TimeSpan.FromMinutes(ListOfActivites[Index].Preference.AverageTimeInMinutes);
-            var ActivityTimeToPrep = TimeSpan.FromMinutes(ListOfActivites[Index].Preference.OffsetToPrepare);
+            if (ActivityForUser == null)
+                return Conflict(new ErrorDetails(409, "Oops, something went wrong with choosing activity"));
+
+            var ActivityDuration = TimeSpan.FromMinutes(ActivityForUser.AverageTimeInMinutes);
+            var ActivityTimeToPrep = TimeSpan.FromMinutes(ActivityForUser.OffsetToPrepare);
 
             var StartOfActivity = StartOfFreeSlot + ActivityTimeToPrep;
             var EndOfActivity = StartOfActivity + ActivityDuration;
 
             var ActivityProposed = new ActivityDto
             {
-                Name = ListOfActivites[Index].Preference.Name,
+                Name = ActivityForUser.Name,
                 DateStart = StartOfActivity.ToString("yyyy-MM-dd"),
                 TimeStart = StartOfActivity.ToShortTimeString(),
                 DateEnd = EndOfActivity.ToString("yyyy-MM-dd"),
@@ -170,19 +168,20 @@ namespace API.Controllers
                 return BadRequest(new ErrorDetails(400, "User didn't choose any preferences"));
             }
 
-            var RandomGenerator = new Random();
-            var Index = RandomGenerator.Next(ListOfActivites.Count());
+            var ActivityForUser = _activitiesService.ChooseActivityByScore(ListOfActivites);
 
+            if (ActivityForUser == null)
+                return Conflict(new ErrorDetails(409, "Oops, something went wrong with choosing activity"));
 
-            var ActivityDuration = TimeSpan.FromMinutes(ListOfActivites[Index].Preference.AverageTimeInMinutes);
-            var ActivityTimeToPrep = TimeSpan.FromMinutes(ListOfActivites[Index].Preference.OffsetToPrepare);
+            var ActivityDuration = TimeSpan.FromMinutes(ActivityForUser.AverageTimeInMinutes);
+            var ActivityTimeToPrep = TimeSpan.FromMinutes(ActivityForUser.OffsetToPrepare);
 
             var StartOfActivity = StartOfFreeSlot + ActivityTimeToPrep;
             var EndOfActivity = StartOfActivity + ActivityDuration;
 
             var ActivityProposed = new ActivityDto
             {
-                Name = ListOfActivites[Index].Preference.Name,
+                Name = ActivityForUser.Name,
                 DateStart = StartOfActivity.ToString("yyyy-MM-dd"),
                 TimeStart = StartOfActivity.ToShortTimeString(),
                 DateEnd = EndOfActivity.ToString("yyyy-MM-dd"),
