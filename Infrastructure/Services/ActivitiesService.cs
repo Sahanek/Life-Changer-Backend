@@ -40,5 +40,22 @@ namespace Infrastructure.Services
             return NonSpontaneusActivitiesOfUser;
 
         }
+
+        public DateTime GetEarliestTimeAvailable(DateTime CurrentDay)
+        {
+            var EarliestHourAvailable = new TimeSpan(8, 0, 0); //User can be given activities between 8-22
+                                                               //of current day
+            var Date = CurrentDay + EarliestHourAvailable;
+
+            return Date;
+        }
+        public DateTime GetLatestTimeAvailable(DateTime CurrentDay)
+        {
+            var LatestHourAvailable = new TimeSpan(22, 0, 0);
+
+            var Date = CurrentDay + LatestHourAvailable;
+
+            return Date;
+        }
     }
 }

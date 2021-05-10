@@ -37,19 +37,121 @@ namespace API.Controllers
         public async Task<ActionResult<ActivityDto>> ProposeActivities(
              List<ActivityDto> EventsOfUserInCalendar)
         {
+
+            if(EventsOfUserInCalendar.Count() == 0)
+            {
+                return BadRequest(new ErrorDetails(400, "You chose wrong controller - list of events" +
+                    "is empty"));
+            }
+
             var email = User.FindFirstValue(ClaimTypes.Email);
 
             var user = await _userManager.FindByEmailAsync(email);
 
-            var Event = EventsOfUserInCalendar.First();
+            var EarliestTimeAvailable = _activitiesService.GetEarliestTimeAvailable(
+                DateTime.Parse(EventsOfUserInCalendar.First().DateStart));
 
-            var Start = DateTime.Parse(Event.DateStart) + TimeSpan.Parse(Event.TimeStart);
+            var LatestTimeAvailable = _activitiesService.GetLatestTimeAvailable(
+                DateTime.Parse(EventsOfUserInCalendar.First().DateStart));
 
-            var End = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
+            var StartOfFreeSlot = EarliestTimeAvailable;
+            var EndOfFreeSlot = LatestTimeAvailable;
+            var Gap = new TimeSpan();
 
-            var NewStart = End.AddHours(3);
-            var NewEnd = End.AddHours(5);
+            //this loop makes a search in Events of user so as to find a free slot to propose activity
+            for (int i = 0; i < EventsOfUserInCalendar.Count() - 1; i++)
+            {
+                var Event = EventsOfUserInCalendar[i];
+                var Start = DateTime.Parse(Event.DateStart) + TimeSpan.Parse(Event.TimeStart);
+                var End = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
 
+                if (End >= EarliestTimeAvailable && Start <= LatestTimeAvailable)
+                {
+                    var EventNext = EventsOfUserInCalendar[i + 1];
+
+                    var StartNext = DateTime.Parse(EventNext.DateStart) + TimeSpan.Parse(EventNext.TimeStart);
+                    var EndNext = DateTime.Parse(EventNext.DateEnd) + TimeSpan.Parse(EventNext.TimeEnd);
+
+                    var GapTemporary = StartNext - End;
+
+                    if (GapTemporary >= Gap)
+                    {
+                        Gap = GapTemporary;
+
+                        StartOfFreeSlot = End;
+                        EndOfFreeSlot = StartNext;
+
+                        if (StartNext >= LatestTimeAvailable)
+                        {
+                            Gap = LatestTimeAvailable - End;
+                            StartOfFreeSlot = End;
+                            EndOfFreeSlot = LatestTimeAvailable;
+                            break; //no more time available, don't need to search more
+                        }
+ 
+                    }
+
+                    if (EndNext >= LatestTimeAvailable)
+                        break; //no more time available, don't need to search more
+                }
+
+            }
+            //compute also for last event in list, if last event ends before latest time available
+            if(EndOfFreeSlot != LatestTimeAvailable)
+            {
+                var EventLast = EventsOfUserInCalendar.Last();
+                var EndLast = DateTime.Parse(EventLast.DateEnd) + TimeSpan.Parse(EventLast.TimeEnd);
+                var GapTemporary = LatestTimeAvailable - EndLast;
+
+                if (GapTemporary >= Gap)
+                {
+                    Gap = GapTemporary;
+                    StartOfFreeSlot = EndLast;
+                    EndOfFreeSlot = LatestTimeAvailable;
+                }
+            }
+            
+
+            var ListOfActivites = await _activitiesService.GetUserNonSpontaneusActivities(user);
+
+            if (ListOfActivites.Count() == 0)
+            {
+                return BadRequest(new ErrorDetails(400, "User didn't choose any preferences"));
+            }
+
+            var RandomGenerator = new Random();
+            var Index = RandomGenerator.Next(ListOfActivites.Count());
+
+
+            var ActivityProposed = new ActivityDto
+            {
+                Name = ListOfActivites[Index].Preference.Name,
+                DateStart = StartOfFreeSlot.ToString("yyyy-MM-dd"),
+                TimeStart = StartOfFreeSlot.ToShortTimeString(),
+                DateEnd = EndOfFreeSlot.ToString("yyyy-MM-dd"),
+                TimeEnd = EndOfFreeSlot.ToShortTimeString()
+            };
+
+            return Ok(ActivityProposed);
+
+        }
+
+        [HttpPost("ProposeActivityOnFreeDay")]
+        public async Task<ActionResult<ActivityDto>> ProposeActivitiesOnFreeDay(DayDto ThisDay)
+        { 
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            var EarliestTimeAvailable = _activitiesService.GetEarliestTimeAvailable(
+                DateTime.Parse(ThisDay.Date));
+
+            var LatestTimeAvailable = _activitiesService.GetLatestTimeAvailable(
+                DateTime.Parse(ThisDay.Date));
+
+            var StartOfFreeSlot = EarliestTimeAvailable;
+            var EndOfFreeSlot = LatestTimeAvailable;
+            var Gap = EndOfFreeSlot - StartOfFreeSlot;
 
 
             var ListOfActivites = await _activitiesService.GetUserNonSpontaneusActivities(user);
@@ -66,15 +168,15 @@ namespace API.Controllers
             var ActivityProposed = new ActivityDto
             {
                 Name = ListOfActivites[Index].Preference.Name,
-                DateStart = NewStart.ToString("yyyy-MM-dd"),
-                TimeStart = NewStart.ToShortTimeString(),
-                DateEnd = NewEnd.ToString("yyyy-MM-dd"),
-                TimeEnd = NewEnd.ToShortTimeString()
+                DateStart = StartOfFreeSlot.ToString("yyyy-MM-dd"),
+                TimeStart = StartOfFreeSlot.ToShortTimeString(),
+                DateEnd = EndOfFreeSlot.ToString("yyyy-MM-dd"),
+                TimeEnd = EndOfFreeSlot.ToShortTimeString()
             };
 
             return Ok(ActivityProposed);
-        }
 
+        }
 
 
     }
