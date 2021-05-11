@@ -61,9 +61,13 @@ namespace API.Controllers
             //this loop makes a search in Events of user so as to find a free slot to propose activity
             for (int i = 0; i < EventsOfUserInCalendar.Count() - 1; i++)
             {
+
                 var Event = EventsOfUserInCalendar[i];
                 var Start = DateTime.Parse(Event.DateStart) + TimeSpan.Parse(Event.TimeStart);
                 var End = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
+
+                if (i == 0 && Start > StartOfFreeSlot)
+                    Gap = Start - StartOfFreeSlot;
 
                 if (End >= EarliestTimeAvailable && Start <= LatestTimeAvailable)
                 {
