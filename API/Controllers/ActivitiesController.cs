@@ -63,6 +63,13 @@ namespace API.Controllers
             {
 
                 var Event = EventsOfUserInCalendar[i];
+
+                if (Event.Name.Length >= 13)
+                {
+                    if (Event.Name.Substring(0, 13) == "[LifeChanger]")
+                        return BadRequest(new ErrorDetails(400, "User has already a LifeChanger event on this day"));
+                }
+
                 var Start = DateTime.Parse(Event.DateStart) + TimeSpan.Parse(Event.TimeStart);
                 var End = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
 
@@ -115,7 +122,7 @@ namespace API.Controllers
                 }
             }
 
-            if((int)Gap.TotalMinutes < 50)
+            if((int)Gap.TotalMinutes < 100)
                 return BadRequest(new ErrorDetails(400, "User has no time for any activities this day"));
 
             var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user, (int)Gap.TotalMinutes);
@@ -136,7 +143,7 @@ namespace API.Controllers
 
             var ActivityProposed = new ActivityDto
             {
-                Name = ActivityForUser.Name,
+                Name = "[LifeChanger] " + ActivityForUser.Name,
                 DateStart = StartOfActivity.ToString("yyyy-MM-dd"),
                 TimeStart = StartOfActivity.ToShortTimeString(),
                 DateEnd = EndOfActivity.ToString("yyyy-MM-dd"),
@@ -185,7 +192,7 @@ namespace API.Controllers
 
             var ActivityProposed = new ActivityDto
             {
-                Name = ActivityForUser.Name,
+                Name = "[LifeChanger] " + ActivityForUser.Name,
                 DateStart = StartOfActivity.ToString("yyyy-MM-dd"),
                 TimeStart = StartOfActivity.ToShortTimeString(),
                 DateEnd = EndOfActivity.ToString("yyyy-MM-dd"),
