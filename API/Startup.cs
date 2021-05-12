@@ -82,6 +82,7 @@ namespace API
             services.AddScoped<GoogleVerification>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IPreferenceService, PreferenceService>();
+            services.AddScoped<IActivitiesService, ActivitiesService>();
 
             //services.AddIdentitySevices(Configuration);
             services.AddSwaggerGen(c =>
