@@ -40,10 +40,12 @@ namespace API.Controllers
         {
 
             if(EventsOfUserInCalendar.Count() == 0)
-            {
                 return BadRequest(new ErrorDetails(400, "You chose wrong controller - list of events" +
                     "is empty"));
-            }
+
+            if (ActivitiesHelper.CheckNumberOfLifeChangerEvents(EventsOfUserInCalendar) >= 3)
+                return BadRequest(new ErrorDetails(400, "User already has LifeChanger Events in his calendar"));
+
 
             var email = User.FindFirstValue(ClaimTypes.Email);
 

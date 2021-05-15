@@ -22,13 +22,6 @@ namespace API.Helpers
             {
 
                 var Event = EventsOfUserInCalendar[i];
-                /*
-                if (Event.Name.Length >= 13)
-                {
-                    if (Event.Name.Substring(0, 13) == "[LifeChanger]")
-                        return BadRequest(new ErrorDetails(400, "User has already a LifeChanger event on this day"));
-                }
-                */
                 var Start = DateTime.Parse(Event.DateStart) + TimeSpan.Parse(Event.TimeStart);
                 var End = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
 
@@ -91,5 +84,22 @@ namespace API.Helpers
             return TimeSlot;
 
         }
+        public static int CheckNumberOfLifeChangerEvents(List<ActivityDto> EventsOfUserInCalendar)
+        {
+            var CounterOfOccurences = 0;
+
+            foreach(ActivityDto Event in EventsOfUserInCalendar)
+            {
+                if (Event.Name.Length >= 13)
+                {
+                    if (Event.Name.Substring(0, 13) == "[LifeChanger]")
+                        CounterOfOccurences++;
+                }
+
+            }
+
+            return CounterOfOccurences;
+        }
+
     }
 }
