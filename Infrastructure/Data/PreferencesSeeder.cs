@@ -176,7 +176,7 @@ namespace Infrastructure.Data
                 },
                 new Preference()
                 {
-                    Name = "Go for a walk together with your loved one ",
+                    Name = "Go for a walk with your loved one ",
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
                     ImageUrl = "walking couple",

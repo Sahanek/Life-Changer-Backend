@@ -63,10 +63,10 @@ namespace API.Controllers
                 return BadRequest(new ErrorDetails(400, "User has no time for any activities this day"));
 
             var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user, 
-                (int)TimeSlotAvailable.Gap.TotalMinutes);
+                (int)TimeSlotAvailable.Gap.TotalMinutes, TimeSlotAvailable.StartOfFreeSlot);
 
             if (ListOfActivites.Count() == 0)
-                return BadRequest(new ErrorDetails(400, "User didn't choose any preferences"));
+                return BadRequest(new ErrorDetails(400, "No activities can be proposed on this day"));
 
             var ActivityForUser = _activitiesService.ChooseActivityByScore(ListOfActivites);
 
@@ -110,7 +110,8 @@ namespace API.Controllers
             var Gap = EndOfFreeSlot - StartOfFreeSlot;
 
 
-            var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user, (int)Gap.TotalMinutes);
+            var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user, (int)Gap.TotalMinutes,
+                StartOfFreeSlot);
 
             if (ListOfActivites.Count() == 0)
             {

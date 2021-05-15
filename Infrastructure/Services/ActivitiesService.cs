@@ -52,9 +52,11 @@ namespace Infrastructure.Services
 
 
         public async Task<IList<AppUserPreference>> GetUserAvailableActivities(AppUser user,
-            int TimeAvailableInMinutes)
+            int TimeAvailableInMinutes, DateTime StartTimeOfActivity)
         {
             var AvailableActivitiesOfUser = new List<AppUserPreference>();
+
+            var TimeOfDay = StartTimeOfActivity.TimeOfDay;
 
             AvailableActivitiesOfUser = await _dbContext
             .AppUserPreferences
@@ -64,7 +66,11 @@ namespace Infrastructure.Services
             .Where(d=>d.Preference.AverageTimeInMinutes + 2*d.Preference.OffsetToPrepare <= TimeAvailableInMinutes)
             .ToListAsync();
 
-            return AvailableActivitiesOfUser;
+            var Act = AvailableActivitiesOfUser
+                .Where(c => TimeSpan.Parse(c.Preference.EarliestHourForAction) <= TimeOfDay)
+                .ToList();
+
+            return Act;
 
 
         }
