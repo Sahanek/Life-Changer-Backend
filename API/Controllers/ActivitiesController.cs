@@ -43,8 +43,8 @@ namespace API.Controllers
                 return BadRequest(new ErrorDetails(400, "You chose wrong controller - list of events" +
                     "is empty"));
 
-            if (ActivitiesHelper.CheckNumberOfLifeChangerEvents(EventsOfUserInCalendar) >= 3)
-                return BadRequest(new ErrorDetails(400, "User already has LifeChanger Events in his calendar"));
+            if (ActivitiesHelper.CheckNumberOfLifeChangerEvents(EventsOfUserInCalendar) >= 1)
+                return BadRequest(new ErrorDetails(400, "User already has LifeChanger Event(s) in his calendar"));
 
 
             var email = User.FindFirstValue(ClaimTypes.Email);
@@ -62,6 +62,7 @@ namespace API.Controllers
             var LatestTimeAvailable = _activitiesService.GetLatestTimeAvailable(
                 DateTime.Parse(EventsOfUserInCalendar.First().DateStart));
 
+            //first event is added outside of the loop (It helps return BadRequests with the lack of time of user etc.)
             var TimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(EventsOfUserInCalendar, EarliestTimeAvailable,
                 LatestTimeAvailable);
 
@@ -74,9 +75,6 @@ namespace API.Controllers
             if (ListOfActivites.Count() == 0)
                 return BadRequest(new ErrorDetails(400, "No activities can be proposed on this day"));
 
-            //we want to organize at least half of the biggest gap of the day
-            var InitialGap = TimeSlotAvailable.Gap;
-            var HalfOfInitialGap = new TimeSpan(InitialGap.Ticks / 2);
 
             var ListOfEventsProposed = new List<ActivityDto>();
 
@@ -85,6 +83,61 @@ namespace API.Controllers
             var EventProposed = ActivitiesHelper.FormatNewEventForUser(TimeSlotAvailable, ActivityForUser);
 
             ListOfEventsProposed.Add(EventProposed);
+            EventsOfUserInCalendar.Add(EventProposed);
+            EventsOfUserInCalendar = EventsOfUserInCalendar.OrderBy(e => e.TimeStart).ToList();
+
+
+            //we want to organize at least half of the biggest gap of the day
+            var InitialGap = TimeSlotAvailable.Gap;
+            var HalfOfInitialGap = new TimeSpan(InitialGap.Ticks / 2);
+
+            //this is a flag to check whether an event has already occured, we want to give different activities
+            // for user
+            bool EventNotRepeatedFlag = true;
+
+            while( TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
+                && ListOfActivites.Count() > 0)
+            {
+                EarliestTimeAvailable = TimeSlotAvailable.StartOfFreeSlot;
+                LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
+
+                var NewTimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(EventsOfUserInCalendar, 
+                    EarliestTimeAvailable, LatestTimeAvailable);
+
+                if (NewTimeSlotAvailable.Gap < HalfOfInitialGap) //arrange just above 50% of free time
+                    break;                                       //we don't want to put too many events to user
+
+
+                if(NewTimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime)
+                {
+                    ListOfActivites = await _activitiesService.GetUserAvailableActivities(user,
+                    (int)TimeSlotAvailable.Gap.TotalMinutes, TimeSlotAvailable.StartOfFreeSlot);
+
+                    ActivityForUser = _activitiesService.ChooseActivityByScore(ListOfActivites);
+
+                    EventProposed = ActivitiesHelper.FormatNewEventForUser(NewTimeSlotAvailable, ActivityForUser);
+
+                    if (ListOfEventsProposed
+                        .Where(c => c.Name == EventProposed.Name)
+                        .FirstOrDefault() != null)
+                    {
+                        if (ListOfActivites.Count() == 1)
+                            break;
+
+                        EventNotRepeatedFlag = false;
+                    }
+                    else
+                    {
+                        ListOfEventsProposed.Add(EventProposed);
+                        EventsOfUserInCalendar.Add(EventProposed);
+                        EventsOfUserInCalendar = EventsOfUserInCalendar.OrderBy(e => e.TimeStart).ToList();
+                    }
+                }
+
+                if(EventNotRepeatedFlag)
+                TimeSlotAvailable = NewTimeSlotAvailable;
+
+            }
 
             return Ok(ListOfEventsProposed);
 
