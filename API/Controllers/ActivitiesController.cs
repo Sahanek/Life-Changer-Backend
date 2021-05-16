@@ -35,7 +35,7 @@ namespace API.Controllers
 
 
         [HttpPost("ProposeActivity")]
-        public async Task<ActionResult<ActivityDto>> ProposeActivities(
+        public async Task<ActionResult<List<ActivityDto>>> ProposeActivities(
              List<ActivityDto> EventsOfUserInCalendar)
         {
 
@@ -51,6 +51,11 @@ namespace API.Controllers
 
             var user = await _userManager.FindByEmailAsync(email);
 
+            var MinimumRequiredTime = await _activitiesService.MinimumTimeRequired(user);
+
+            if (MinimumRequiredTime < 0)
+                return BadRequest(new ErrorDetails(400, "User has no categories chosen"));
+
             var EarliestTimeAvailable = _activitiesService.GetEarliestTimeAvailable(
                 DateTime.Parse(EventsOfUserInCalendar.First().DateStart));
 
@@ -60,8 +65,7 @@ namespace API.Controllers
             var TimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(EventsOfUserInCalendar, EarliestTimeAvailable,
                 LatestTimeAvailable);
 
-
-            if ((int)TimeSlotAvailable.Gap.TotalMinutes < 100)
+            if ((int)TimeSlotAvailable.Gap.TotalMinutes < MinimumRequiredTime)
                 return BadRequest(new ErrorDetails(400, "User has no time for any activities this day"));
 
             var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user, 
@@ -70,27 +74,19 @@ namespace API.Controllers
             if (ListOfActivites.Count() == 0)
                 return BadRequest(new ErrorDetails(400, "No activities can be proposed on this day"));
 
+            //we want to organize at least half of the biggest gap of the day
+            var InitialGap = TimeSlotAvailable.Gap;
+            var HalfOfInitialGap = new TimeSpan(InitialGap.Ticks / 2);
+
+            var ListOfEventsProposed = new List<ActivityDto>();
+
             var ActivityForUser = _activitiesService.ChooseActivityByScore(ListOfActivites);
 
-            if (ActivityForUser == null)
-                return Conflict(new ErrorDetails(409, "Oops, something went wrong with choosing activity"));
+            var EventProposed = ActivitiesHelper.FormatNewEventForUser(TimeSlotAvailable, ActivityForUser);
 
-            var ActivityDuration = TimeSpan.FromMinutes(ActivityForUser.AverageTimeInMinutes);
-            var ActivityTimeToPrep = TimeSpan.FromMinutes(ActivityForUser.OffsetToPrepare);
+            ListOfEventsProposed.Add(EventProposed);
 
-            var StartOfActivity = TimeSlotAvailable.StartOfFreeSlot + ActivityTimeToPrep;
-            var EndOfActivity = StartOfActivity + ActivityDuration;
-
-            var ActivityProposed = new ActivityDto
-            {
-                Name = "[LifeChanger] " + ActivityForUser.Name,
-                DateStart = StartOfActivity.ToString("yyyy-MM-dd"),
-                TimeStart = StartOfActivity.ToShortTimeString(),
-                DateEnd = EndOfActivity.ToString("yyyy-MM-dd"),
-                TimeEnd = EndOfActivity.ToShortTimeString()
-            };
-
-            return Ok(ActivityProposed);
+            return Ok(ListOfEventsProposed);
 
         }
 
@@ -107,13 +103,16 @@ namespace API.Controllers
             var LatestTimeAvailable = _activitiesService.GetLatestTimeAvailable(
                 DateTime.Parse(ThisDay.Date));
 
-            var StartOfFreeSlot = EarliestTimeAvailable;
-            var EndOfFreeSlot = LatestTimeAvailable;
-            var Gap = EndOfFreeSlot - StartOfFreeSlot;
+            var TimeSlotAvailable = new TimeSlotDto
+            {
+                StartOfFreeSlot = EarliestTimeAvailable,
+                EndOfFreeSlot = LatestTimeAvailable,
+                Gap = LatestTimeAvailable - EarliestTimeAvailable,
+            };
 
 
-            var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user, (int)Gap.TotalMinutes,
-                StartOfFreeSlot);
+            var ListOfActivites = await _activitiesService.GetUserAvailableActivities(user,
+                (int)TimeSlotAvailable.Gap.TotalMinutes, TimeSlotAvailable.StartOfFreeSlot);
 
             if (ListOfActivites.Count() == 0)
             {
@@ -122,25 +121,9 @@ namespace API.Controllers
 
             var ActivityForUser = _activitiesService.ChooseActivityByScore(ListOfActivites);
 
-            if (ActivityForUser == null)
-                return Conflict(new ErrorDetails(409, "Oops, something went wrong with choosing activity"));
+            var EventProposed = ActivitiesHelper.FormatNewEventForUser(TimeSlotAvailable, ActivityForUser);
 
-            var ActivityDuration = TimeSpan.FromMinutes(ActivityForUser.AverageTimeInMinutes);
-            var ActivityTimeToPrep = TimeSpan.FromMinutes(ActivityForUser.OffsetToPrepare);
-
-            var StartOfActivity = StartOfFreeSlot + ActivityTimeToPrep;
-            var EndOfActivity = StartOfActivity + ActivityDuration;
-
-            var ActivityProposed = new ActivityDto
-            {
-                Name = "[LifeChanger] " + ActivityForUser.Name,
-                DateStart = StartOfActivity.ToString("yyyy-MM-dd"),
-                TimeStart = StartOfActivity.ToShortTimeString(),
-                DateEnd = EndOfActivity.ToString("yyyy-MM-dd"),
-                TimeEnd = EndOfActivity.ToShortTimeString()
-            };
-
-            return Ok(ActivityProposed);
+            return Ok(EventProposed);
 
         }
 

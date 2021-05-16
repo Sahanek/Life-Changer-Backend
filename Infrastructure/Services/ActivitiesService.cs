@@ -15,15 +15,44 @@ namespace Infrastructure.Services
     public class ActivitiesService : IActivitiesService
     {
         private readonly AppIdentityDbContext _dbContext;
-        private readonly IMapper _mapper;
-        private readonly UserManager<AppUser> _userManager;
 
-        public ActivitiesService(AppIdentityDbContext dbContext, IMapper mapper, UserManager<AppUser> userManager)
+        public ActivitiesService(AppIdentityDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
-            _userManager = userManager;
         }
+
+        public async Task<int> MinimumTimeRequired(AppUser user)
+        {
+            var UserWithStuff = await _dbContext
+                .Users
+                .Include(r => r.Categories)
+                .Where(u => u.Id == user.Id)
+                .FirstOrDefaultAsync();
+
+            var ListOfCategories = UserWithStuff.Categories;
+
+            if (ListOfCategories.Count() == 3)
+                return 50;                      //50 minutes is required for shortest activity
+
+            int RequiredTime=1000000;           //here is simply a big number for the algorithm
+
+            foreach(Category Cat in ListOfCategories)
+            {
+                if (Cat.Name == "Love" && RequiredTime > 100)
+                    RequiredTime = 100;
+                if (Cat.Name == "Culture and enterntainment" && RequiredTime > 50)
+                    RequiredTime = 50;
+                if (Cat.Name == "Sport and health" && RequiredTime > 110)
+                    RequiredTime = 110;
+            }
+
+            if (RequiredTime > 110)
+                return -1;
+
+            return RequiredTime;
+        }
+
+
 
         public Preference ChooseActivityByScore(IList<AppUserPreference> PossibleActivities)
         {

@@ -9,6 +9,7 @@ namespace Core.Interfaces
 {
     public interface IActivitiesService
     {
+        Task<int> MinimumTimeRequired(AppUser user);
         Preference ChooseActivityByScore(IList<AppUserPreference> PossibleActivities);
         Task<IList<AppUserPreference>> GetUserAvailableActivities(AppUser user, int TimeAvailableInMinutes,
             DateTime StartTimeOfActivity);

@@ -3,11 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Dtos;
+using Core.Entities;
 
 namespace API.Helpers
 {
     public class ActivitiesHelper
     {
+        public static ActivityDto FormatNewEventForUser(TimeSlotDto TimeSlotAvailable, Preference ActivityForUser)
+        {
+            var ActivityDuration = TimeSpan.FromMinutes(ActivityForUser.AverageTimeInMinutes);
+            var ActivityTimeToPrep = TimeSpan.FromMinutes(ActivityForUser.OffsetToPrepare);
+
+            var StartOfActivity = TimeSlotAvailable.StartOfFreeSlot + ActivityTimeToPrep;
+            var EndOfActivity = StartOfActivity + ActivityDuration;
+
+            var ActivityProposed = new ActivityDto
+            {
+                Name = "[LifeChanger] " + ActivityForUser.Name,
+                DateStart = StartOfActivity.ToString("yyyy-MM-dd"),
+                TimeStart = StartOfActivity.ToShortTimeString(),
+                DateEnd = EndOfActivity.ToString("yyyy-MM-dd"),
+                TimeEnd = EndOfActivity.ToShortTimeString()
+            };
+
+            return ActivityProposed;
+        }
+
+
         public static TimeSlotDto SearchForFreeSlot(List<ActivityDto> EventsOfUserInCalendar, 
             DateTime EarliestTimeAvailable, DateTime LatestTimeAvailable)
         {
