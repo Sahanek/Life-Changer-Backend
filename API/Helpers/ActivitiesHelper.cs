@@ -36,8 +36,35 @@ namespace API.Helpers
 
             var StartOfFreeSlot = EarliestTimeAvailable;
             var EndOfFreeSlot = LatestTimeAvailable;
-
             var Gap = new TimeSpan();
+
+
+            //exception when theres only one event
+            if (EventsOfUserInCalendar.Count()==1)
+            {
+                var Event = EventsOfUserInCalendar.First();
+                var Start = DateTime.Parse(Event.DateStart) + TimeSpan.Parse(Event.TimeStart);
+                var End = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
+
+
+                if (End >= EarliestTimeAvailable && Start <= LatestTimeAvailable) {
+
+                    var GapEarlier = Start - StartOfFreeSlot;
+                    var GapLater = EndOfFreeSlot - End;
+
+                    if (GapEarlier > GapLater)
+                    {
+                        EndOfFreeSlot = Start;          //bc. StartOfFreeSlot = EarliestTimeAvailable
+                        Gap = GapEarlier;
+                    }
+                    else
+                    {
+                        StartOfFreeSlot = End;          //bc. EndOfFreeSlot = LatestTimeAvailable
+                        Gap = GapLater;
+                    }
+                }
+
+            }
 
             //this loop makes a search in Events of user so as to find a free slot to propose activity
             for (int i = 0; i < EventsOfUserInCalendar.Count() - 1; i++)
@@ -52,6 +79,7 @@ namespace API.Helpers
 
                 if (End >= EarliestTimeAvailable && Start <= LatestTimeAvailable)
                 {
+
                     var EventNext = EventsOfUserInCalendar[i + 1];
 
                     var StartNext = DateTime.Parse(EventNext.DateStart) + TimeSpan.Parse(EventNext.TimeStart);
