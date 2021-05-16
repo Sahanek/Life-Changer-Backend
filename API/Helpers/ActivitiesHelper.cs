@@ -9,6 +9,23 @@ namespace API.Helpers
 {
     public class ActivitiesHelper
     {
+
+        public static bool CheckIfAnyEventIsWithinAvailableTimeSlot(List<ActivityDto> EventsOfUserInCalendar,
+            DateTime EarliestTimeAvailable, DateTime LatestTimeAvailable)
+        {
+            foreach(ActivityDto Event in EventsOfUserInCalendar)
+            {
+                var Start = DateTime.Parse(Event.DateStart) + TimeSpan.Parse(Event.TimeStart);
+                var End = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
+
+                if (End >= EarliestTimeAvailable && Start <= LatestTimeAvailable)
+                    return true;
+
+            }
+            return false;
+        }
+
+
         public static ActivityDto FormatNewEventForUser(TimeSlotDto TimeSlotAvailable, Preference ActivityForUser)
         {
             var ActivityDuration = TimeSpan.FromMinutes(ActivityForUser.AverageTimeInMinutes);
@@ -29,6 +46,57 @@ namespace API.Helpers
             return ActivityProposed;
         }
 
+        /*If theres only one event in a list searching for a free slot is different (can't compare with others etc.)*/
+        public static TimeSlotDto OneElementInAListException(ActivityDto Event, DateTime EarliestTimeAvailable,
+            DateTime LatestTimeAvailable)
+        {
+
+            var StartOfFreeSlot = EarliestTimeAvailable;
+            var EndOfFreeSlot = LatestTimeAvailable;
+            var Gap = new TimeSpan();
+
+            var Start = DateTime.Parse(Event.DateStart) + TimeSpan.Parse(Event.TimeStart);
+            var End = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
+
+
+            if (End >= EarliestTimeAvailable && Start <= LatestTimeAvailable)
+            {
+
+                var GapEarlier = Start - StartOfFreeSlot;
+                var GapLater = EndOfFreeSlot - End;
+
+                if (GapEarlier > GapLater)
+                {
+                    EndOfFreeSlot = Start;          //bc. StartOfFreeSlot = EarliestTimeAvailable
+                    Gap = GapEarlier;
+                }
+                else
+                {
+                    StartOfFreeSlot = End;          //bc. EndOfFreeSlot = LatestTimeAvailable
+                    Gap = GapLater;
+                }
+            }
+            else
+            {
+                var FreeDay = new TimeSlotDto()
+                {
+                    StartOfFreeSlot = EarliestTimeAvailable,
+                    EndOfFreeSlot = LatestTimeAvailable,
+                    Gap = LatestTimeAvailable - EarliestTimeAvailable
+                };
+
+                return FreeDay;
+            }
+
+            var TimeSlot = new TimeSlotDto()
+            {
+                StartOfFreeSlot = StartOfFreeSlot,
+                EndOfFreeSlot = EndOfFreeSlot,
+                Gap = Gap
+            };
+            return TimeSlot;
+        }
+
 
         public static TimeSlotDto SearchForFreeSlot(List<ActivityDto> EventsOfUserInCalendar, 
             DateTime EarliestTimeAvailable, DateTime LatestTimeAvailable)
@@ -40,31 +108,9 @@ namespace API.Helpers
 
 
             //exception when theres only one event
-            if (EventsOfUserInCalendar.Count()==1)
-            {
-                var Event = EventsOfUserInCalendar.First();
-                var Start = DateTime.Parse(Event.DateStart) + TimeSpan.Parse(Event.TimeStart);
-                var End = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
+            if (EventsOfUserInCalendar.Count() == 1)
+                return OneElementInAListException(EventsOfUserInCalendar.First(), EarliestTimeAvailable, LatestTimeAvailable);
 
-
-                if (End >= EarliestTimeAvailable && Start <= LatestTimeAvailable) {
-
-                    var GapEarlier = Start - StartOfFreeSlot;
-                    var GapLater = EndOfFreeSlot - End;
-
-                    if (GapEarlier > GapLater)
-                    {
-                        EndOfFreeSlot = Start;          //bc. StartOfFreeSlot = EarliestTimeAvailable
-                        Gap = GapEarlier;
-                    }
-                    else
-                    {
-                        StartOfFreeSlot = End;          //bc. EndOfFreeSlot = LatestTimeAvailable
-                        Gap = GapLater;
-                    }
-                }
-
-            }
 
             //this loop makes a search in Events of user so as to find a free slot to propose activity
             for (int i = 0; i < EventsOfUserInCalendar.Count() - 1; i++)
@@ -76,6 +122,7 @@ namespace API.Helpers
 
                 if (i == 0 && Start > StartOfFreeSlot)
                     Gap = Start - StartOfFreeSlot;
+
 
                 if (End >= EarliestTimeAvailable && Start <= LatestTimeAvailable)
                 {
@@ -109,20 +156,37 @@ namespace API.Helpers
                 }
 
             }
-            //compute also for last event in list, if last event ends before latest time available
-            if (EndOfFreeSlot != LatestTimeAvailable)
-            {
-                var EventLast = EventsOfUserInCalendar.Last();
-                var EndLast = DateTime.Parse(EventLast.DateEnd) + TimeSpan.Parse(EventLast.TimeEnd);
-                var GapTemporary = LatestTimeAvailable - EndLast;
 
-                if (GapTemporary >= Gap)
+            var EventLast = EventsOfUserInCalendar.Last();
+            var EndLast = DateTime.Parse(EventLast.DateEnd) + TimeSpan.Parse(EventLast.TimeEnd);
+            var GapTemporaryLast = LatestTimeAvailable - EndLast;
+
+            if (GapTemporaryLast >= Gap)
+            {
+                Gap = GapTemporaryLast;
+                StartOfFreeSlot = EndLast;
+                EndOfFreeSlot = LatestTimeAvailable;
+            }
+
+            //if there are only 2 elements in a list consider one exception
+            if (EventsOfUserInCalendar.Count() == 2)
+            {
+                var Event = EventsOfUserInCalendar.First();
+                var EndFirst = DateTime.Parse(Event.DateEnd) + TimeSpan.Parse(Event.TimeEnd);
+                if (EndFirst < EarliestTimeAvailable)
                 {
-                    Gap = GapTemporary;
-                    StartOfFreeSlot = EndLast;
-                    EndOfFreeSlot = LatestTimeAvailable;
+                    var StartSecond = DateTime.Parse(EventLast.DateStart) + TimeSpan.Parse(EventLast.TimeStart);
+                    var GapTemporary = StartSecond - EarliestTimeAvailable;
+
+                    if (GapTemporary >= Gap)
+                    {
+                        Gap = GapTemporary;
+                        StartOfFreeSlot = EarliestTimeAvailable;
+                        EndOfFreeSlot = StartSecond;
+                    }
                 }
             }
+
 
             var TimeSlot = new TimeSlotDto()
             {

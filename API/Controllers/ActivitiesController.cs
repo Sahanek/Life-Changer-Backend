@@ -62,9 +62,25 @@ namespace API.Controllers
             var LatestTimeAvailable = _activitiesService.GetLatestTimeAvailable(
                 DateTime.Parse(EventsOfUserInCalendar.First().DateStart));
 
-            //first event is added outside of the loop (It helps return BadRequests with the lack of time of user etc.)
-            var TimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(EventsOfUserInCalendar, EarliestTimeAvailable,
+            var TimeSlotAvailable = new TimeSlotDto();
+
+            if (ActivitiesHelper.CheckIfAnyEventIsWithinAvailableTimeSlot(EventsOfUserInCalendar, EarliestTimeAvailable,
+                LatestTimeAvailable))
+            {
+                //first event is added outside of the loop (It helps return BadRequests with the lack of time of user etc.)
+                TimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(EventsOfUserInCalendar, EarliestTimeAvailable,
                 LatestTimeAvailable);
+            }
+            else
+            {
+                TimeSlotAvailable = new TimeSlotDto
+                {
+                    StartOfFreeSlot = EarliestTimeAvailable,
+                    EndOfFreeSlot = LatestTimeAvailable,
+                    Gap = LatestTimeAvailable - EarliestTimeAvailable,
+                };
+            }
+
 
             if ((int)TimeSlotAvailable.Gap.TotalMinutes < MinimumRequiredTime)
                 return BadRequest(new ErrorDetails(400, "User has no time for any activities this day"));
@@ -144,11 +160,16 @@ namespace API.Controllers
         }
 
         [HttpPost("ProposeActivityOnFreeDay")]
-        public async Task<ActionResult<ActivityDto>> ProposeActivitiesOnFreeDay(DayDto ThisDay)
+        public async Task<ActionResult<List<ActivityDto>>> ProposeActivitiesOnFreeDay(DayDto ThisDay)
         { 
             var email = User.FindFirstValue(ClaimTypes.Email);
 
             var user = await _userManager.FindByEmailAsync(email);
+
+            var MinimumRequiredTime = await _activitiesService.MinimumTimeRequired(user);
+
+            if (MinimumRequiredTime < 0)
+                return BadRequest(new ErrorDetails(400, "User has no categories chosen"));
 
             var EarliestTimeAvailable = _activitiesService.GetEarliestTimeAvailable(
                 DateTime.Parse(ThisDay.Date));
@@ -176,7 +197,57 @@ namespace API.Controllers
 
             var EventProposed = ActivitiesHelper.FormatNewEventForUser(TimeSlotAvailable, ActivityForUser);
 
-            return Ok(EventProposed);
+            var ListOfEventsProposed = new List<ActivityDto>();
+            ListOfEventsProposed.Add(EventProposed);
+
+            var InitialGap = TimeSlotAvailable.Gap;
+            var HalfOfInitialGap = new TimeSpan(InitialGap.Ticks / 2);
+
+            bool EventNotRepeatedFlag = true;
+
+            while (TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
+                && ListOfActivites.Count() > 0)
+            {
+                EarliestTimeAvailable = TimeSlotAvailable.StartOfFreeSlot;
+                LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
+
+                var NewTimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(ListOfEventsProposed,
+                    EarliestTimeAvailable, LatestTimeAvailable);
+
+                if (NewTimeSlotAvailable.Gap < HalfOfInitialGap) //arrange just above 50% of free time
+                    break;                                       //we don't want to put too many events to user
+
+
+                if (NewTimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime)
+                {
+                    ListOfActivites = await _activitiesService.GetUserAvailableActivities(user,
+                    (int)TimeSlotAvailable.Gap.TotalMinutes, TimeSlotAvailable.StartOfFreeSlot);
+
+                    ActivityForUser = _activitiesService.ChooseActivityByScore(ListOfActivites);
+
+                    EventProposed = ActivitiesHelper.FormatNewEventForUser(NewTimeSlotAvailable, ActivityForUser);
+
+                    if (ListOfEventsProposed
+                        .Where(c => c.Name == EventProposed.Name)
+                        .FirstOrDefault() != null)
+                    {
+                        if (ListOfActivites.Count() == 1)
+                            break;
+
+                        EventNotRepeatedFlag = false;
+                    }
+                    else
+                    {
+                        ListOfEventsProposed.Add(EventProposed);
+                    }
+                }
+
+                if (EventNotRepeatedFlag)
+                    TimeSlotAvailable = NewTimeSlotAvailable;
+
+            }
+
+            return Ok(ListOfEventsProposed);
 
         }
 
