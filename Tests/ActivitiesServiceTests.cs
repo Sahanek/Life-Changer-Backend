@@ -18,38 +18,28 @@ namespace Tests
 {
     public class ActivitiesServiceTests
     {
-        private IMapper _mapper;
-        private Mock<FakeUserManager> fakeUserManager = new FakeUserManagerBuilder().Build();
+
         private IActivitiesService activitiesService;
         private AppIdentityDbContext dbContext;
 
         public ActivitiesServiceTests()
         {
-            if (_mapper == null)
-            {
-                var mappingConfig = new MapperConfiguration(mc =>
-                {
-                    mc.AddProfile(new MappingProfiles());
-                });
-                IMapper mapper = mappingConfig.CreateMapper();
-                _mapper = mapper;
-
-                var options = new DbContextOptionsBuilder<AppIdentityDbContext>()
+            var options = new DbContextOptionsBuilder<AppIdentityDbContext>()
                     .UseInMemoryDatabase(databaseName: "Acitivities Test")
                     .Options;
 
                 dbContext = new AppIdentityDbContext(options);
-                activitiesService = new ActivitiesService(dbContext, _mapper, fakeUserManager.Object);
-            }
+                activitiesService = new ActivitiesService(dbContext);
+            
         }
 
         [Fact]
         public void GetEarliestTimeIsDateTime()
         {
-           
+           //Act
             var result = activitiesService.GetEarliestTimeAvailable(new DateTime
                 (year:2020, month: 7, day: 20));
-
+            //Assert
             Assert.IsType<DateTime>(result);
 
         }
@@ -69,14 +59,36 @@ namespace Tests
         }
 
         [Fact]
-        public void GetUserNonSpontanousActionsThrowsNullException()
+        public void GetUserNonSpontanousActivities_ThrowsNullException()
         {
-            //Arrange
-             //var expectedList = new List<AppUserPreference>();
-            
-            //var result = activitiesService.GetUserNonSpontaneusActivities(null);
             //Act & Assert
             Assert.ThrowsAsync<NullReferenceException>(() => activitiesService.GetUserNonSpontaneusActivities(null));
+        }
+
+        [Fact]
+        public void ChooseActivityByScore_EmptyListReturnNull()
+        {
+            //Arrange
+            var list = new List<AppUserPreference>();
+
+            var result = activitiesService.ChooseActivityByScore(list);
+            //Act & Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task ChooseActivityByScore_ReturnOnePreferencesNotNull()
+        {
+            //Arrange
+            await SeedDb_GetUserWith2Action1SpontAllLove();
+            var appUserPreferencesList = dbContext.AppUserPreferences.Include(x => x.Preference).
+                Where(x => !x.Preference.IsSpontaneus).ToList();
+            //Act
+            var result = activitiesService.ChooseActivityByScore(appUserPreferencesList);
+             // Assert
+            Assert.NotNull(result);
+            Assert.IsType<Preference>(result);
+            Assert.Equal(appUserPreferencesList[0].Preference, result);
         }
 
         [Fact]
