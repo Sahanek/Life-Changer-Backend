@@ -14,6 +14,8 @@ using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -39,21 +41,26 @@ namespace Tests
         public void PreferencesController_ListAllPreferencesFromDB()
         {
             DbContextOptionsBuilder<AppIdentityDbContext> optionsBuilder = new();
-            optionsBuilder.UseInMemoryDatabase(MethodBase.GetCurrentMethod().Name);
-            AppIdentityDbContext dbcontext = new(optionsBuilder.Options);
+           optionsBuilder.UseInMemoryDatabase(MethodBase.GetCurrentMethod().Name);
+            AppIdentityDbContext dbContext = new(optionsBuilder.Options);
+            //var dbSetMock = new Mock<DbSet<AppUser>>();
+            //var dbContextMock = new Mock<AppIdentityDbContext>();
+            //dbContextMock.Setup(s => s.Set<AppUser>()).Returns(dbSetMock.Object);
+            var fakeUserManager = new FakeUserManagerBuilder().Build();
+           // var userManagerMock = GetUserManagerMock<AppUser>();
+           // userManagerMock.Setup(u => u.FindByIdAsync(It.IsAny<String>()))
+              //  .Returns(Task.FromResult(new AppUser()));
 
-            var fakeusermanager = new FakeUserManagerBuilder().Build();
-
-           // var test = new Mock<UserManager<AppUser>>(); tak nie działa ofc
+            // var test = new Mock<UserManager<AppUser>>(); tak nie działa ofc
 
             var preferenceservice = new Mock<IPreferenceService>();
 
 
 
             var controller = new PreferencesController(
-            fakeusermanager.Object,
+            fakeUserManager.Object,
             _mapper,
-            dbcontext,
+            dbContext,
             preferenceservice.Object);
 
             var result = controller.GetAll();
@@ -62,6 +69,21 @@ namespace Tests
 
 
         }
+
+        Mock<UserManager<TIDentityUser>> GetUserManagerMock<TIDentityUser>() where TIDentityUser : IdentityUser
+        {
+            return new Mock<UserManager<TIDentityUser>>(
+                new Mock<IUserStore<TIDentityUser>>().Object,
+                new Mock<IOptions<IdentityOptions>>().Object,
+                new Mock<IPasswordHasher<TIDentityUser>>().Object,
+                new IUserValidator<TIDentityUser>[0],
+                new IPasswordValidator<TIDentityUser>[0],
+                new Mock<ILookupNormalizer>().Object,
+                new Mock<IdentityErrorDescriber>().Object,
+                new Mock<IServiceProvider>().Object,
+                new Mock<ILogger<UserManager<TIDentityUser>>>().Object);
+        }
+
 
     }
 }
