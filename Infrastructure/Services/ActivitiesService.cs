@@ -15,14 +15,10 @@ namespace Infrastructure.Services
     public class ActivitiesService : IActivitiesService
     {
         private readonly AppIdentityDbContext _dbContext;
-        private readonly IMapper _mapper;
-        private readonly UserManager<AppUser> _userManager;
 
-        public ActivitiesService(AppIdentityDbContext dbContext, IMapper mapper, UserManager<AppUser> userManager)
+        public ActivitiesService(AppIdentityDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
-            _userManager = userManager;
         }
 
         public Preference ChooseActivityByScore(IList<AppUserPreference> PossibleActivities)
