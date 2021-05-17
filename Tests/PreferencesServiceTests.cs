@@ -1,0 +1,259 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using API.Helpers;
+using AutoMapper;
+using Core.Entities;
+using Core.Interfaces;
+using Infrastructure.Identity;
+using Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using Xunit;
+using Xunit.Priority;
+
+namespace Tests
+{
+
+    public class PreferencesServiceTests
+    {
+        private IPreferenceService preferenceservice;
+        private AppIdentityDbContext dbContext;
+
+
+        public PreferencesServiceTests()
+        {
+            var options = new DbContextOptionsBuilder<AppIdentityDbContext>()
+                .UseInMemoryDatabase(databaseName: "Preferences Test")
+                .Options;
+
+            dbContext = new AppIdentityDbContext(options);
+            preferenceservice = new PreferenceService(dbContext);
+
+        }
+        [Fact,Priority(1)]
+        public async void CheckGetAllPreferencesIfThereAreAll()
+        {
+            await SeedDb_Preferences();
+
+            var result = await preferenceservice.GetAll();
+
+            var NbOfElements = result.Count();
+            var SingleResult = result.First();
+
+            Assert.NotNull(result);
+            Assert.Equal(9, NbOfElements);
+            Assert.IsType<Preference>(SingleResult);
+        }
+
+        [Fact]
+        public async void GetPreferencesByCategory_ThrowNullIfErrors()
+        {
+            var ListofCategories = new List<int>();
+
+            var result = await preferenceservice.GetPreferencesByCategory(ListofCategories);
+            var result2 = await preferenceservice.GetPreferencesByCategory(ListofCategories); 
+
+            Assert.Null(result);
+            Assert.Null(result2);
+        }
+
+
+
+
+        public async Task<int> SeedDb_Preferences()
+        {
+            var Categories = new List<Category>
+            {
+                 new Category
+                {
+                    Name = "Love",
+                    ImageUrl = "google.com"
+                },
+                new Category
+                {
+                    Name = "Culture and enterntainment",
+                    ImageUrl = "google.com"
+                },
+                new Category
+                {
+                    Name = "Sport and health",
+                    ImageUrl = "google.com"
+                }
+            };
+
+            var LoveCategory = Categories.Where(c => c.Name == "Love").First();
+            var HealthCategory = Categories.FirstOrDefault(n => n.Name.Equals("Sport and health"));
+            var CultureCategory = Categories.FirstOrDefault(n => n.Name.Equals("Culture and enterntainment"));
+
+            var Preferences = new List<Preference>
+            {
+
+                new Preference()
+                {
+                    Name = "Buy sweets",
+                    AverageTimeInMinutes = 10,
+                    IsSpontaneus = true,
+                    ImageUrl = "food",
+                    OffsetToPrepare = 5,
+                    Category = LoveCategory
+                },
+                new Preference()
+                {
+                    Name = "Buy wine",
+                    AverageTimeInMinutes = 10,
+                    IsSpontaneus = true,
+                    ImageUrl = "food",
+                    OffsetToPrepare = 5,
+                    Category = LoveCategory
+                },
+                new Preference()
+                {
+                    Name = "Go to restaurant",
+                    AverageTimeInMinutes = 120,
+                    IsSpontaneus = false,
+                    ImageUrl = "food",
+                    OffsetToPrepare = 45,
+                    Category = LoveCategory
+                },new Preference()
+                {
+                    Name = "Swimming pool",
+                    AverageTimeInMinutes = 90,
+                    IsSpontaneus = false,
+                    ImageUrl = "swimming",
+                    OffsetToPrepare = 45,
+                    Category = HealthCategory
+                },
+                new Preference()
+                {
+                    Name = "Bike",
+                    AverageTimeInMinutes = 90,
+                    IsSpontaneus = false,
+                    ImageUrl = "bike",
+                    OffsetToPrepare = 20,
+                    Category = HealthCategory
+                },new Preference()
+                {
+                    Name = "Nordic-walking",
+                    AverageTimeInMinutes = 120,
+                    IsSpontaneus = false,
+                    ImageUrl = "nordic-walking",
+                    OffsetToPrepare = 20,
+                    Category = HealthCategory
+                },
+                  new Preference()
+                {
+                    Name = "Go to theatre",
+                    AverageTimeInMinutes = 180,
+                    IsSpontaneus = false,
+                    ImageUrl = "arts",
+                    OffsetToPrepare = 45,
+                    Category = CultureCategory
+                },new Preference()
+                {
+                    Name = "Go to cinema",
+                    AverageTimeInMinutes = 200,
+                    IsSpontaneus = false,
+                    ImageUrl = "arts",
+                    OffsetToPrepare = 45,
+                    Category = CultureCategory
+                },
+                new Preference()
+                {
+                    Name = "Go to opera",
+                    AverageTimeInMinutes = 180,
+                    IsSpontaneus = false,
+                    ImageUrl = "arts",
+                    OffsetToPrepare = 45,
+                    Category = CultureCategory
+                },
+            };
+            await dbContext.AddRangeAsync(Categories);
+            await dbContext.AddRangeAsync(Preferences);
+            await dbContext.SaveChangesAsync();
+
+            return 0;
+        }
+
+
+        public async Task<AppUser> SeedDb_TestuserWithPreferences()
+        {
+            var LoveCategory = new Category
+            {
+                Id = 1,
+                Name = "Love",
+                ImageUrl = "google.com"
+            };
+
+            var preferences = new List<Preference>
+           {
+               new Preference()
+               {
+                   Id = 1,
+                   Name = "Go to restaurant",
+                   AverageTimeInMinutes = 120,
+                   IsSpontaneus = false,
+                   ImageUrl = "food",
+                   OffsetToPrepare = 45,
+                   Category = LoveCategory,
+                   CategoryID = LoveCategory.Id,
+               },
+               new Preference()
+               {
+                   Id = 2,
+                   Name = "Cook favorite dish",
+                   AverageTimeInMinutes = 60,
+                   IsSpontaneus = true,
+                   ImageUrl = "food",
+                   OffsetToPrepare = 30,
+                   Category = LoveCategory,
+                   CategoryID = LoveCategory.Id,
+               }
+           };
+
+            var user = new AppUser
+            {
+                Id = Guid.NewGuid().ToString(),
+                Email = "abc@asa.com",
+            };
+
+            var newUser = new AppUser
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Preferences = new List<AppUserPreference>
+               {
+                   new AppUserPreference
+                   {
+                       AppUser = user,
+                       AppUserId = user.Id,
+                       Id = 1,
+                       Preference = preferences[0],
+                       PreferenceId = preferences[0].Id,
+                       Quantity = 0,
+                       Score = 5
+                   },
+                   new AppUserPreference
+                   {
+                   AppUser = user,
+                   AppUserId = user.Id,
+                   Id = 2,
+                   Preference = preferences[1],
+                   PreferenceId = preferences[1].Id,
+                   Quantity = 0,
+                   Score = 5
+               }
+
+               }
+            };
+
+            await dbContext.Users.AddAsync(newUser);
+            await dbContext.SaveChangesAsync();
+
+            return newUser;
+        }
+    }
+}
