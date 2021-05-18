@@ -93,7 +93,7 @@ namespace API
                 c.EnableAnnotations();
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "LifeChanger", Version = "v1" , Description = "Application which change your life."});
                 //c.DocumentFilter<JsonPatchDocumentFilter>();
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlFile = "API.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });

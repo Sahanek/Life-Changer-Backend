@@ -25,7 +25,7 @@ namespace API.Controllers
         /// Constructor with services, user, googleverification etc.
         /// </summary>
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
-            ITokenService tokenService, IMapper mapper, GoogleVerification googleVerification)
+            ITokenService tokenService, GoogleVerification googleVerification)
         {
             _userManager = userManager;
             _tokenService = tokenService;
