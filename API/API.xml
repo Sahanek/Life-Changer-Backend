@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>API</name>
+    </assembly>
+    <members>
+        <member name="M:API.Controllers.AccountController.ExternalLogin(API.Dtos.ExternalAuthDto)">
+            <summary>
+            Login user via external service like google. Returns UserDto with Token needed for Authorization.
+            </summary>
+            <param name="externalAuth"> Dto contains provider e.g. Google and tokenId from returned that service </param>
+            <returns></returns>
+        </member>
+        <member name="M:API.Controllers.AccountController.GetCalendarId">
+            <summary>
+            Return CalendarId for current logged in user.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:API.Controllers.AccountController.UpdateCalendarId(API.Dtos.CalendarDto)">
+            <summary>
+            Update CalendarId selected for saving events.
+            </summary>
+            <param name = "calendar"> Method replace CalendarId for current logged in user with CalendarId passed in body. </param>
+            <returns></returns>
+        </member>
+        <member name="T:API.Controllers.PreferencesController">
+            <summary>
+            All methods need Authorization header. 
+            </summary>
+        </member>
+        <member name="M:API.Controllers.PreferencesController.GenerateUserPreferences(API.Dtos.ChosenCategoriesDto)">
+            <summary>
+            
+            </summary>
+            <param name="chosenCategories"></param>
+        </member>
+        <member name="M:API.Controllers.PreferencesController.ChangeScoreOfPreferences(API.Dtos.ChosenImagesDto)">
+            <summary>
+            
+            </summary>
+            <param name="chosenImages"></param>
+        </member>
+        <member name="M:API.Controllers.PreferencesController.GetUserPreferences">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:API.Controllers.PreferencesController.GetUserCategories">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:API.Controllers.PreferencesController.RemoveUserCategories(System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="CategoryId"></param>
+        </member>
+        <member name="M:API.Controllers.PreferencesController.GetAll">
+            <summary>
+            
+            </summary>
+        </member>
+    </members>
+</doc>

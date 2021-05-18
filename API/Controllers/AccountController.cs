@@ -43,7 +43,11 @@ namespace API.Controllers
             _googleVerification = googleVerification;
         }
 
-
+        /// <summary>
+        /// Login user via external service like google. Returns UserDto with Token needed for Authorization.
+        /// </summary>
+        /// <param name="externalAuth"> Dto contains provider e.g. Google and tokenId from returned that service </param>
+        /// <returns></returns>
         [HttpPost("ExternalLogin")]
         public async Task<ActionResult<UserDto>> ExternalLogin([FromBody] ExternalAuthDto externalAuth)
         {
@@ -83,6 +87,7 @@ namespace API.Controllers
             };
         }
 
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("{email}")]
         public async Task<ActionResult<UserDto>> UserForTesting(string email)
         {
@@ -113,6 +118,10 @@ namespace API.Controllers
             };
         }
 
+        /// <summary>
+        /// Return CalendarId for current logged in user.
+        /// </summary>
+        /// <returns></returns>
         [Authorize]
         [HttpGet("calendar")]
         public async Task<ActionResult<CalendarDto>> GetCalendarId()
@@ -124,6 +133,12 @@ namespace API.Controllers
             return new CalendarDto { Token = user.CalendarId };
         }
 
+
+        /// <summary>
+        /// Update CalendarId selected for saving events.
+        /// </summary>
+        /// <param name = "calendar"> Method replace CalendarId for current logged in user with CalendarId passed in body. </param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("updatecalendar")]
         public async Task<ActionResult<UserDto>> UpdateCalendarId(CalendarDto calendar)
@@ -142,7 +157,6 @@ namespace API.Controllers
                 Token = _tokenService.CreateToken(user),
                 UserName = user.UserName
             };
-
         }
 
         //[ApiExplorerSettings(IgnoreApi = true)]
@@ -411,7 +425,7 @@ namespace API.Controllers
         //    return NoContent();
         //}
 
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("testauth")]
         [Authorize]
         public ActionResult<string> GetSecret()

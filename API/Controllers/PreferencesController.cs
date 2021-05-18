@@ -34,7 +34,10 @@ namespace API.Controllers
         }
 
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chosenCategories"></param>
         [HttpPost("GeneratePreferences")]
         public async Task<ActionResult<bool>> GenerateUserPreferences([FromBody] ChosenCategoriesDto chosenCategories)
         {
@@ -93,7 +96,10 @@ namespace API.Controllers
             return Ok();
 
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chosenImages"></param>
         [HttpPost("LikedPreferences")]
         public async Task<ActionResult> ChangeScoreOfPreferences([FromBody] ChosenImagesDto chosenImages)
         {
@@ -141,7 +147,9 @@ namespace API.Controllers
             return Ok();
 
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         [HttpGet("UserPreferences")]
         public async Task<ActionResult<List<PreferenceDto>>> GetUserPreferences()
         {
@@ -168,7 +176,9 @@ namespace API.Controllers
             return Ok(PreferencesOfUserDto);
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
         [HttpGet("UserCategories")]
         public async Task<ActionResult<UserCategoryDto>> GetUserCategories()
         {
@@ -188,7 +198,10 @@ namespace API.Controllers
             return Ok(CategoriesOfUserDto);
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="CategoryId"></param>
         [HttpDelete("UserCategories/{CategoryId}")]
         public async Task<ActionResult> RemoveUserCategories([FromRoute] int CategoryId)
         {
@@ -252,7 +265,9 @@ namespace API.Controllers
 
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
         [HttpGet]
         public async Task<ActionResult<PreferenceDto>> GetAll() //this is just for testing
         {
