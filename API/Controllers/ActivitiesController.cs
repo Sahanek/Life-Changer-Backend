@@ -80,7 +80,7 @@ namespace API.Controllers
             {
                 //first event is added outside of the loop (It helps return BadRequests with the lack of time of user etc.)
                 TimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(EventsOfUserInCalendar, EarliestTimeAvailable,
-                LatestTimeAvailable, 0);
+                LatestTimeAvailable);
             }
             else
             {
@@ -121,7 +121,7 @@ namespace API.Controllers
             //this is a flag to check whether an event has already occured, we want to give different activities
             // for user
             bool EventNotRepeatedFlag = true;
-            var OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
+            //var OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
 
 
             while ( TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
@@ -132,7 +132,7 @@ namespace API.Controllers
                 LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
 
                 var NewTimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(EventsOfUserInCalendar, 
-                    EarliestTimeAvailable, LatestTimeAvailable, OffsetFromPreviousActivity);
+                    EarliestTimeAvailable, LatestTimeAvailable);
 
                 if (NewTimeSlotAvailable.Gap < HalfOfInitialGap) //arrange just above 50% of free time
                     break;                                       //we don't want to put too many events to user
@@ -158,7 +158,7 @@ namespace API.Controllers
                     }
                     else
                     {
-                        OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
+                     //   OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
                         ListOfEventsProposed.Add(EventProposed);
                         EventsOfUserInCalendar.Add(EventProposed);
                         EventsOfUserInCalendar = EventsOfUserInCalendar.OrderBy(e => e.TimeStart).ToList();
@@ -222,7 +222,7 @@ namespace API.Controllers
             var InitialGap = TimeSlotAvailable.Gap;
             var HalfOfInitialGap = new TimeSpan(InitialGap.Ticks / 2);
             bool EventNotRepeatedFlag = true;
-            var OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
+            //var OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
 
             while (TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
                 && ListOfActivites.Count() > 0
@@ -231,7 +231,7 @@ namespace API.Controllers
                 EarliestTimeAvailable = TimeSlotAvailable.StartOfFreeSlot;
                 LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
                 var NewTimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(ListOfEventsProposed,
-                    EarliestTimeAvailable, LatestTimeAvailable, OffsetFromPreviousActivity);
+                    EarliestTimeAvailable, LatestTimeAvailable);
 
                 if (NewTimeSlotAvailable.Gap < HalfOfInitialGap) //arrange just above 50% of free time
                     break;                                       //we don't want to put too many events to user
@@ -257,7 +257,7 @@ namespace API.Controllers
                     }
                     else
                     {
-                        OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
+                        //OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
                         ListOfEventsProposed.Add(EventProposed);
                     }
                 }

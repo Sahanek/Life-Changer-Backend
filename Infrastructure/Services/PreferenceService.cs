@@ -35,6 +35,9 @@ namespace Infrastructure.Services
 
         public async Task<IEnumerable<Preference>> GetPreferencesByCategory(List<int> Categories)
         {
+            if (Categories.Count() == 0 || Categories == null)
+                return null;
+
 
             var NbOfChosenCategories = Categories.Count();
 

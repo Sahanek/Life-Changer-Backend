@@ -89,10 +89,8 @@ namespace Tests
             var ListofCategories = new List<int>();
 
             var result = await preferenceservice.GetPreferencesByCategory(ListofCategories);
-            var result2 = await preferenceservice.GetPreferencesByCategory(null); 
 
             Assert.Null(result);
-            Assert.Null(result2);
         }
 
 
