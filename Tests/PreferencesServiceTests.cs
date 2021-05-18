@@ -17,13 +17,13 @@ using Xunit.Priority;
 
 namespace Tests
 {
-
+    [DefaultPriority(0)]
     public class PreferencesServiceTests
     {
         private IPreferenceService preferenceservice;
         private AppIdentityDbContext dbContext;
 
-
+        
         public PreferencesServiceTests()
         {
             var options = new DbContextOptionsBuilder<AppIdentityDbContext>()
@@ -34,11 +34,13 @@ namespace Tests
             preferenceservice = new PreferenceService(dbContext);
 
         }
-        [Fact,Priority(1)]
+
+        //this is a first test so we also seed db in it
+        [Fact,Priority(-1)]
         public async void CheckGetAllPreferencesIfThereAreAll()
         {
             await SeedDb_Preferences();
-
+           
             var result = await preferenceservice.GetAll();
 
             var NbOfElements = result.Count();
@@ -47,7 +49,39 @@ namespace Tests
             Assert.NotNull(result);
             Assert.Equal(9, NbOfElements);
             Assert.IsType<Preference>(SingleResult);
+
+
         }
+        /*
+        [Fact, Priority(1)]
+        public async void UpdateUserCategories_ReturnFalseIfAlreadyHasThisCategory()
+        {
+            var ListofCategories = new List<int>();
+            ListofCategories.Add(1);
+
+            var newUser = await SeedDb_TestuserWithPreferences();
+            
+            var result = await preferenceservice.UpdateUserCategories(ListofCategories, newUser);
+
+            Assert.False(result);
+        }
+        */
+
+        [Fact]
+        public async void GetPreferencesByCategory_CheckIfWorksFine()
+        {
+            var ListofCategories = new List<int>();
+
+            ListofCategories.Add(1);
+
+            var result = await preferenceservice.GetPreferencesByCategory(ListofCategories);
+
+            foreach(Preference pref in result)
+            {
+                Assert.Equal("Love",pref.Category.Name);
+            }
+        }
+
 
         [Fact]
         public async void GetPreferencesByCategory_ThrowNullIfErrors()
@@ -55,13 +89,11 @@ namespace Tests
             var ListofCategories = new List<int>();
 
             var result = await preferenceservice.GetPreferencesByCategory(ListofCategories);
-            var result2 = await preferenceservice.GetPreferencesByCategory(ListofCategories); 
+            var result2 = await preferenceservice.GetPreferencesByCategory(null); 
 
             Assert.Null(result);
             Assert.Null(result2);
         }
-
-
 
 
         public async Task<int> SeedDb_Preferences()
