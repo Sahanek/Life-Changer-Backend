@@ -1,26 +1,11 @@
 ﻿using API.Dtos;
-using API.Errors;
 using API.Helpers;
-using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
-using Google.Apis.Auth;
-using Google.Apis.Auth.OAuth2.Flows;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -28,18 +13,14 @@ namespace API.Controllers
     public class AccountController : BaseApiController
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly SignInManager<AppUser> _signInManager;
         private readonly ITokenService _tokenService;
-        private readonly IMapper _mapper;
         private readonly GoogleVerification _googleVerification;
 
-        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
-            ITokenService tokenService, IMapper mapper, GoogleVerification googleVerification)
+        public AccountController(UserManager<AppUser> userManager,
+            ITokenService tokenService, GoogleVerification googleVerification)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
             _tokenService = tokenService;
-            _mapper = mapper;
             _googleVerification = googleVerification;
         }
 
