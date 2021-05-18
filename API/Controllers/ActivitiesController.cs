@@ -110,9 +110,11 @@ namespace API.Controllers
             //this is a flag to check whether an event has already occured, we want to give different activities
             // for user
             bool EventNotRepeatedFlag = true;
+            var MaxAmountOfEvents = 2;                  //so it proposes max 3 (because one is already)
 
-            while( TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
-                && ListOfActivites.Count() > 0)
+            while ( TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
+                && ListOfActivites.Count() > 0
+                && MaxAmountOfEvents >0)
             {
                 EarliestTimeAvailable = TimeSlotAvailable.StartOfFreeSlot;
                 LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
@@ -144,6 +146,7 @@ namespace API.Controllers
                     }
                     else
                     {
+                        MaxAmountOfEvents--;
                         ListOfEventsProposed.Add(EventProposed);
                         EventsOfUserInCalendar.Add(EventProposed);
                         EventsOfUserInCalendar = EventsOfUserInCalendar.OrderBy(e => e.TimeStart).ToList();
@@ -202,11 +205,12 @@ namespace API.Controllers
 
             var InitialGap = TimeSlotAvailable.Gap;
             var HalfOfInitialGap = new TimeSpan(InitialGap.Ticks / 2);
-
+            var MaxAmountOfEvents = 2;                  //so it adds max 3 (because one is already)
             bool EventNotRepeatedFlag = true;
 
             while (TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
-                && ListOfActivites.Count() > 0)
+                && ListOfActivites.Count() > 0
+                && MaxAmountOfEvents >0)
             {
                 EarliestTimeAvailable = TimeSlotAvailable.StartOfFreeSlot;
                 LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
@@ -238,6 +242,7 @@ namespace API.Controllers
                     }
                     else
                     {
+                        MaxAmountOfEvents--;
                         ListOfEventsProposed.Add(EventProposed);
                     }
                 }
