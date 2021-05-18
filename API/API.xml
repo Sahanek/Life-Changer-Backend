@@ -24,11 +24,6 @@
             <param name = "calendar"> Method replace CalendarId for current logged in user with CalendarId passed in body. </param>
             <returns></returns>
         </member>
-        <member name="T:API.Controllers.PreferencesController">
-            <summary>
-            All methods need Authorization header. 
-            </summary>
-        </member>
         <member name="M:API.Controllers.PreferencesController.GenerateUserPreferences(API.Dtos.ChosenCategoriesDto)">
             <summary>
             

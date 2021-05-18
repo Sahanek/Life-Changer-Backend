@@ -57,6 +57,7 @@ namespace Infrastructure.Services
         public Preference ChooseActivityByScore(IList<AppUserPreference> PossibleActivities)
         {
             var ListToDraw = new List<string>();
+            if (PossibleActivities.Count == 0) return null;
 
             foreach(AppUserPreference Activity in PossibleActivities)
             {

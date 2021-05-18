@@ -13,6 +13,7 @@ using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Xunit;
+using Xunit.Priority;
 
 namespace Tests
 {
@@ -89,9 +90,11 @@ namespace Tests
             Assert.NotNull(result);
             Assert.IsType<Preference>(result);
             Assert.Equal(appUserPreferencesList[0].Preference, result);
+            await dbContext.Database.EnsureDeletedAsync();
         }
 
         [Fact]
+       
         public async Task GetUserNonSpontanousActions_ShouldContainsOnePreferences()
         {
             //Arrange
@@ -110,8 +113,9 @@ namespace Tests
             //Arrange
             var newUser = await SeedDb_GetUserWith2Action1SpontAllLove();
             var timeAvailableInMinutes = 210;
+            var startTime = DateTime.Today + TimeSpan.FromHours(8);
             //Act
-            var result = activitiesService.GetUserAvailableActivities(newUser, timeAvailableInMinutes );
+            var result = activitiesService.GetUserAvailableActivities(newUser, timeAvailableInMinutes, startTime );
             // Assert
             Assert.Single(result.Result);
             await dbContext.Database.EnsureDeletedAsync();
@@ -124,8 +128,9 @@ namespace Tests
             //Arrange
             var newUser = await SeedDb_GetUserWith2Action1SpontAllLove();
             var timeAvailableInMinutes = 120;
+            var startTime = DateTime.Today + TimeSpan.FromHours(8); 
             //Act
-            var result = activitiesService.GetUserAvailableActivities(newUser, timeAvailableInMinutes);
+            var result = activitiesService.GetUserAvailableActivities(newUser, timeAvailableInMinutes, startTime);
             // Assert
             Assert.Empty(result.Result);
             await dbContext.Database.EnsureDeletedAsync();
@@ -153,6 +158,7 @@ namespace Tests
                    OffsetToPrepare = 45,
                    Category = LoveCategory,
                    CategoryID = LoveCategory.Id,
+                   EarliestHourForAction = "08:00",
                },
                new Preference()
                {
@@ -164,6 +170,7 @@ namespace Tests
                    OffsetToPrepare = 30,
                    Category = LoveCategory,
                    CategoryID = LoveCategory.Id,
+                   EarliestHourForAction = "08:00",
                }
            };
 
