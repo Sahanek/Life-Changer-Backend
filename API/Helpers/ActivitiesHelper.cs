@@ -99,10 +99,10 @@ namespace API.Helpers
 
 
         public static TimeSlotDto SearchForFreeSlot(List<ActivityDto> EventsOfUserInCalendar, 
-            DateTime EarliestTimeAvailable, DateTime LatestTimeAvailable)
+            DateTime EarliestTimeAvailable, DateTime LatestTimeAvailable, int OffsetFromPreviousActivityInMinutes)
         {
-
-            var StartOfFreeSlot = EarliestTimeAvailable;
+            var NewEarliestTimeAvailable = EarliestTimeAvailable.AddMinutes(OffsetFromPreviousActivityInMinutes);
+            var StartOfFreeSlot = NewEarliestTimeAvailable;
             var EndOfFreeSlot = LatestTimeAvailable;
             var Gap = new TimeSpan();
 

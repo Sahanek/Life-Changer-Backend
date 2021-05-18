@@ -16,6 +16,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
+    /// <summary>
+    /// Controller to serve user choices about activities he would like to do and personalises them
+    /// </summary>
     [Authorize]
     public class PreferencesController : BaseApiController
     {
@@ -24,6 +27,9 @@ namespace API.Controllers
         private readonly AppIdentityDbContext _dbContext;
         private readonly IPreferenceService _preferenceService;
 
+        /// <summary>
+        /// Constructor with services, user, etc.
+        /// </summary>
         public PreferencesController(UserManager<AppUser> userManager, IMapper mapper, AppIdentityDbContext dbContext,
             IPreferenceService preferenceservice)
         {
@@ -35,9 +41,11 @@ namespace API.Controllers
 
 
         /// <summary>
-        /// 
+        /// Method which gets info from user about chosen categories and seeds data about him in database
         /// </summary>
-        /// <param name="chosenCategories"></param>
+        /// <param name="chosenCategories"> Dto contains list of int with chosen categories, where 1 is Love, 2 
+        /// is culture and entertainment and 3 is Health</param>
+        /// <returns></returns>
         [HttpPost("GeneratePreferences")]
         public async Task<ActionResult<bool>> GenerateUserPreferences([FromBody] ChosenCategoriesDto chosenCategories)
         {
@@ -96,10 +104,14 @@ namespace API.Controllers
             return Ok();
 
         }
+
         /// <summary>
-        /// 
+        /// Change score (so as to give more personalised activities) of user chosen preferences which are connected to specific
+        /// images on Frontend,
         /// </summary>
-        /// <param name="chosenImages"></param>
+        /// <param name="chosenImages"> Dto contains a list of string with names of images clicked by user
+        /// each image is connected to at least one preference (usually a few)</param>
+        /// <returns></returns>
         [HttpPost("LikedPreferences")]
         public async Task<ActionResult> ChangeScoreOfPreferences([FromBody] ChosenImagesDto chosenImages)
         {
@@ -147,8 +159,9 @@ namespace API.Controllers
             return Ok();
 
         }
+
         /// <summary>
-        /// 
+        /// Gives a list of all preferences (all possible activities) connected to current user 
         /// </summary>
         [HttpGet("UserPreferences")]
         public async Task<ActionResult<List<PreferenceDto>>> GetUserPreferences()
@@ -177,7 +190,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// 
+        /// Get all categories chosen by user
         /// </summary>
         [HttpGet("UserCategories")]
         public async Task<ActionResult<UserCategoryDto>> GetUserCategories()
@@ -199,7 +212,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// 
+        /// Deletes selected category of user and all preferences etc. connected with it
         /// </summary>
         /// <param name="CategoryId"></param>
         [HttpDelete("UserCategories/{CategoryId}")]
@@ -266,7 +279,7 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// 
+        /// Get all possible preferences for any user
         /// </summary>
         [HttpGet]
         public async Task<ActionResult<PreferenceDto>> GetAll() //this is just for testing

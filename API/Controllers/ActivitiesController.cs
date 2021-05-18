@@ -17,6 +17,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
+    /// <summary>
+    /// Controller to search for free time of user and propose personalized activity for him
+    /// </summary>
     [Authorize]
     public class ActivitiesController : BaseApiController
     {
@@ -24,6 +27,9 @@ namespace API.Controllers
         private readonly AppIdentityDbContext _dbContext;
         private readonly IActivitiesService _activitiesService;
 
+        /// <summary>
+        /// Constructor with services, user, etc.
+        /// </summary>
         public ActivitiesController(UserManager<AppUser> userManager, AppIdentityDbContext dbContext,
             IActivitiesService activitiesService)
         {
@@ -33,7 +39,12 @@ namespace API.Controllers
         }
 
 
-
+        /// <summary>
+        /// Search through all of user events from calendar, find free slot and propose a list of activities for him
+        /// </summary>
+        /// <param name="EventsOfUserInCalendar"> List of ActivityDtos containing info about user events
+        /// on this day</param>
+        /// <returns></returns>
         [HttpPost("ProposeActivity")]
         public async Task<ActionResult<List<ActivityDto>>> ProposeActivities(
              List<ActivityDto> EventsOfUserInCalendar)
@@ -69,7 +80,7 @@ namespace API.Controllers
             {
                 //first event is added outside of the loop (It helps return BadRequests with the lack of time of user etc.)
                 TimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(EventsOfUserInCalendar, EarliestTimeAvailable,
-                LatestTimeAvailable);
+                LatestTimeAvailable, 0);
             }
             else
             {
@@ -110,17 +121,18 @@ namespace API.Controllers
             //this is a flag to check whether an event has already occured, we want to give different activities
             // for user
             bool EventNotRepeatedFlag = true;
-            var MaxAmountOfEvents = 2;                  //so it proposes max 3 (because one is already)
+            var OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
+
 
             while ( TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
                 && ListOfActivites.Count() > 0
-                && MaxAmountOfEvents >0)
+                && ListOfEventsProposed.Count() <3)
             {
                 EarliestTimeAvailable = TimeSlotAvailable.StartOfFreeSlot;
                 LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
 
                 var NewTimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(EventsOfUserInCalendar, 
-                    EarliestTimeAvailable, LatestTimeAvailable);
+                    EarliestTimeAvailable, LatestTimeAvailable, OffsetFromPreviousActivity);
 
                 if (NewTimeSlotAvailable.Gap < HalfOfInitialGap) //arrange just above 50% of free time
                     break;                                       //we don't want to put too many events to user
@@ -146,7 +158,7 @@ namespace API.Controllers
                     }
                     else
                     {
-                        MaxAmountOfEvents--;
+                        OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
                         ListOfEventsProposed.Add(EventProposed);
                         EventsOfUserInCalendar.Add(EventProposed);
                         EventsOfUserInCalendar = EventsOfUserInCalendar.OrderBy(e => e.TimeStart).ToList();
@@ -161,7 +173,11 @@ namespace API.Controllers
             return Ok(ListOfEventsProposed);
 
         }
-
+        /// <summary>
+        /// Propose activites for a day where user doesn't have any events
+        /// </summary>
+        /// <param name="ThisDay"> Dto contains info about a date on which activities will be proposed</param>
+        /// <returns></returns>
         [HttpPost("ProposeActivityOnFreeDay")]
         public async Task<ActionResult<List<ActivityDto>>> ProposeActivitiesOnFreeDay(DayDto ThisDay)
         { 
@@ -205,18 +221,17 @@ namespace API.Controllers
 
             var InitialGap = TimeSlotAvailable.Gap;
             var HalfOfInitialGap = new TimeSpan(InitialGap.Ticks / 2);
-            var MaxAmountOfEvents = 2;                  //so it adds max 3 (because one is already)
             bool EventNotRepeatedFlag = true;
+            var OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
 
             while (TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
                 && ListOfActivites.Count() > 0
-                && MaxAmountOfEvents >0)
+                && ListOfEventsProposed.Count() <3)
             {
                 EarliestTimeAvailable = TimeSlotAvailable.StartOfFreeSlot;
                 LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
-
                 var NewTimeSlotAvailable = ActivitiesHelper.SearchForFreeSlot(ListOfEventsProposed,
-                    EarliestTimeAvailable, LatestTimeAvailable);
+                    EarliestTimeAvailable, LatestTimeAvailable, OffsetFromPreviousActivity);
 
                 if (NewTimeSlotAvailable.Gap < HalfOfInitialGap) //arrange just above 50% of free time
                     break;                                       //we don't want to put too many events to user
@@ -242,7 +257,7 @@ namespace API.Controllers
                     }
                     else
                     {
-                        MaxAmountOfEvents--;
+                        OffsetFromPreviousActivity = ActivityForUser.OffsetToPrepare;
                         ListOfEventsProposed.Add(EventProposed);
                     }
                 }

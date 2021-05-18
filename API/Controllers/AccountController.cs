@@ -25,6 +25,10 @@ using System.Threading.Tasks;
 
 namespace API.Controllers
 {
+
+    /// <summary>
+    /// Controller to serve login and connection with calendar
+    /// </summary>
     public class AccountController : BaseApiController
     {
         private readonly UserManager<AppUser> _userManager;
@@ -33,6 +37,10 @@ namespace API.Controllers
         private readonly IMapper _mapper;
         private readonly GoogleVerification _googleVerification;
 
+
+        /// <summary>
+        /// Constructor with services, user, googleverification etc.
+        /// </summary>
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
             ITokenService tokenService, IMapper mapper, GoogleVerification googleVerification)
         {
@@ -86,7 +94,9 @@ namespace API.Controllers
                 UserName = user.UserName
             };
         }
-
+        /// <summary>
+        /// This is a user for testing in f. ex. Postman so as  skip Google Verification etc.
+        /// </summary>
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("{email}")]
         public async Task<ActionResult<UserDto>> UserForTesting(string email)
@@ -102,7 +112,9 @@ namespace API.Controllers
             };
         }
 
-
+        /// <summary>
+        /// Get info about current user
+        /// </summary>
         [Authorize]
         [HttpGet]
         public async Task<ActionResult<UserDto>> GetCurrentUser()

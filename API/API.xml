@@ -4,12 +4,32 @@
         <name>API</name>
     </assembly>
     <members>
+        <member name="T:API.Controllers.AccountController">
+            <summary>
+            Controller to serve login and connection with calendar
+            </summary>
+        </member>
+        <member name="M:API.Controllers.AccountController.#ctor(Microsoft.AspNetCore.Identity.UserManager{Core.Entities.AppUser},Microsoft.AspNetCore.Identity.SignInManager{Core.Entities.AppUser},Core.Interfaces.ITokenService,AutoMapper.IMapper,API.Helpers.GoogleVerification)">
+            <summary>
+            Constructor with services, user, googleverification etc.
+            </summary>
+        </member>
         <member name="M:API.Controllers.AccountController.ExternalLogin(API.Dtos.ExternalAuthDto)">
             <summary>
             Login user via external service like google. Returns UserDto with Token needed for Authorization.
             </summary>
             <param name="externalAuth"> Dto contains provider e.g. Google and tokenId from returned that service </param>
             <returns></returns>
+        </member>
+        <member name="M:API.Controllers.AccountController.UserForTesting(System.String)">
+            <summary>
+            This is a user for testing in f. ex. Postman so as  skip Google Verification etc.
+            </summary>
+        </member>
+        <member name="M:API.Controllers.AccountController.GetCurrentUser">
+            <summary>
+            Get info about current user
+            </summary>
         </member>
         <member name="M:API.Controllers.AccountController.GetCalendarId">
             <summary>
@@ -24,42 +44,77 @@
             <param name = "calendar"> Method replace CalendarId for current logged in user with CalendarId passed in body. </param>
             <returns></returns>
         </member>
+        <member name="T:API.Controllers.ActivitiesController">
+            <summary>
+            Controller to search for free time of user and propose personalized activity for him
+            </summary>
+        </member>
+        <member name="M:API.Controllers.ActivitiesController.#ctor(Microsoft.AspNetCore.Identity.UserManager{Core.Entities.AppUser},Infrastructure.Identity.AppIdentityDbContext,Core.Interfaces.IActivitiesService)">
+            <summary>
+            Constructor with services, user, etc.
+            </summary>
+        </member>
+        <member name="M:API.Controllers.ActivitiesController.ProposeActivities(System.Collections.Generic.List{API.Dtos.ActivityDto})">
+            <summary>
+            Search through all of user events from calendar, find free slot and propose a list of activities for him
+            </summary>
+            <param name="EventsOfUserInCalendar"> List of ActivityDtos containing info about user events
+            on this day</param>
+            <returns></returns>
+        </member>
+        <member name="M:API.Controllers.ActivitiesController.ProposeActivitiesOnFreeDay(API.Dtos.DayDto)">
+            <summary>
+            Propose activites for a day where user doesn't have any events
+            </summary>
+            <param name="ThisDay"> Dto contains info about a date on which activities will be proposed</param>
+            <returns></returns>
+        </member>
         <member name="T:API.Controllers.PreferencesController">
             <summary>
-            All methods need Authorization header. 
+            Controller to serve user choices about activities he would like to do and personalises them
+            </summary>
+        </member>
+        <member name="M:API.Controllers.PreferencesController.#ctor(Microsoft.AspNetCore.Identity.UserManager{Core.Entities.AppUser},AutoMapper.IMapper,Infrastructure.Identity.AppIdentityDbContext,Core.Interfaces.IPreferenceService)">
+            <summary>
+            Constructor with services, user, etc.
             </summary>
         </member>
         <member name="M:API.Controllers.PreferencesController.GenerateUserPreferences(API.Dtos.ChosenCategoriesDto)">
             <summary>
-            
+            Method which gets info from user about chosen categories and seeds data about him in database
             </summary>
-            <param name="chosenCategories"></param>
+            <param name="chosenCategories"> Dto contains list of int with chosen categories, where 1 is Love, 2 
+            is culture and entertainment and 3 is Health</param>
+            <returns></returns>
         </member>
         <member name="M:API.Controllers.PreferencesController.ChangeScoreOfPreferences(API.Dtos.ChosenImagesDto)">
             <summary>
-            
+            Change score (so as to give more personalised activities) of user chosen preferences which are connected to specific
+            images on Frontend,
             </summary>
-            <param name="chosenImages"></param>
+            <param name="chosenImages"> Dto contains a list of string with names of images clicked by user
+            each image is connected to at least one preference (usually a few)</param>
+            <returns></returns>
         </member>
         <member name="M:API.Controllers.PreferencesController.GetUserPreferences">
             <summary>
-            
+            Gives a list of all preferences (all possible activities) connected to current user 
             </summary>
         </member>
         <member name="M:API.Controllers.PreferencesController.GetUserCategories">
             <summary>
-            
+            Get all categories chosen by user
             </summary>
         </member>
         <member name="M:API.Controllers.PreferencesController.RemoveUserCategories(System.Int32)">
             <summary>
-            
+            Deletes selected category of user and all preferences etc. connected with it
             </summary>
             <param name="CategoryId"></param>
         </member>
         <member name="M:API.Controllers.PreferencesController.GetAll">
             <summary>
-            
+            Get all possible preferences for any user
             </summary>
         </member>
     </members>
