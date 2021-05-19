@@ -39,6 +39,7 @@ namespace Tests
         [Fact,Priority(-1)]
         public async void CheckGetAllPreferencesIfThereAreAll()
         {
+            await dbContext.Database.EnsureDeletedAsync();
             await SeedDb_Preferences();
            
             var result = await preferenceservice.GetAll();
