@@ -53,7 +53,7 @@ namespace API.Controllers
 
                 if (user == null)
                 {
-                    user = new AppUser { Email = payload.Email, UserName = payload.GivenName };
+                    user = new AppUser { Email = payload.Email, UserName = payload.Name };
                     await _userManager.CreateAsync(user);
                     await _userManager.AddLoginAsync(user, info);
                 }
