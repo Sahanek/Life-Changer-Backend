@@ -34,6 +34,9 @@ namespace API.Helpers
             var StartOfActivity = TimeSlotAvailable.StartOfFreeSlot + ActivityTimeToPrep;
             var EndOfActivity = StartOfActivity + ActivityDuration;
 
+            if (EndOfActivity > TimeSlotAvailable.EndOfFreeSlot)
+                EndOfActivity = TimeSlotAvailable.EndOfFreeSlot - TimeSpan.FromMinutes(10);
+
             var ActivityProposed = new ActivityDto
             {
                 Name = "[LifeChanger] " + ActivityForUser.Name,

@@ -90,7 +90,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
                     ImageUrl = "food",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "16:00",
                     Category = LoveCategory
                 },
@@ -100,7 +100,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
                     ImageUrl = "food",
-                    OffsetToPrepare = 30,
+                    OffsetToPrepare = 90,
                     EarliestHourForAction = "14:00",
                     Category = LoveCategory
                 },
@@ -110,7 +110,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
                     ImageUrl = "monument",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "14:00",
                     Category = LoveCategory
                 },
@@ -120,7 +120,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
                     ImageUrl = "monument",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "14:00",
                     Category = LoveCategory
                 },
@@ -130,7 +130,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
                     ImageUrl = "monument",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "14:00",
                     Category = LoveCategory
                 },
@@ -140,7 +140,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 200,
                     IsSpontaneus = false,
                     ImageUrl = "cinema",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "14:00",
                     Category = LoveCategory
                 },
@@ -150,7 +150,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 160,
                     IsSpontaneus = false,
                     ImageUrl = "couple film",
-                    OffsetToPrepare = 15,
+                    OffsetToPrepare = 75,
                     EarliestHourForAction = "16:00",
                     Category = LoveCategory
                 },
@@ -160,7 +160,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
                     ImageUrl = "couple film",
-                    OffsetToPrepare = 15,
+                    OffsetToPrepare = 75,
                     EarliestHourForAction = "12:00",
                     Category = LoveCategory
                 },
@@ -170,7 +170,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 300,
                     IsSpontaneus = false,
                     ImageUrl = "couple stuff",
-                    OffsetToPrepare = 40,
+                    OffsetToPrepare = 100,
                     EarliestHourForAction = "08:00",
                     Category = LoveCategory
                 },
@@ -180,7 +180,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
                     ImageUrl = "walking couple",
-                    OffsetToPrepare = 15,
+                    OffsetToPrepare = 75,
                     EarliestHourForAction = "08:00",
                     Category = LoveCategory
                 },
@@ -209,7 +209,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
                     ImageUrl = "google.com",
-                    OffsetToPrepare = 20,
+                    OffsetToPrepare = 80,
                     EarliestHourForAction = "18:00",
                     Category = LoveCategory
                 },
@@ -238,7 +238,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
                     ImageUrl = "aerobics",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "08:00",
                     Category = HealthCategory
                 },new Preference()
@@ -247,7 +247,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
                     ImageUrl = "swimming",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "08:00",
                     Category = HealthCategory
                 },
@@ -257,7 +257,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
                     ImageUrl = "bike",
-                    OffsetToPrepare = 20,
+                    OffsetToPrepare = 80,
                     EarliestHourForAction = "08:00",
                     Category = HealthCategory
                 },new Preference()
@@ -266,7 +266,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
                     ImageUrl = "nordic-walking",
-                    OffsetToPrepare = 20,
+                    OffsetToPrepare = 80,
                     EarliestHourForAction = "08:00",
                     Category = HealthCategory
                 },
@@ -276,7 +276,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
                     ImageUrl = "roller skates",
-                    OffsetToPrepare = 20,
+                    OffsetToPrepare = 80,
                     EarliestHourForAction = "08:00",
                     Category = HealthCategory
                 },new Preference()
@@ -285,7 +285,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
                     ImageUrl = "run",
-                    OffsetToPrepare = 20,
+                    OffsetToPrepare = 80,
                     EarliestHourForAction = "08:00",
                     Category = HealthCategory
                 },
@@ -295,7 +295,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 100,
                     IsSpontaneus = false,
                     ImageUrl = "gym",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "08:00",
                     Category = HealthCategory
                 },new Preference()
@@ -304,7 +304,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 90,
                     IsSpontaneus = false,
                     ImageUrl = "relax",
-                    OffsetToPrepare = 30,
+                    OffsetToPrepare = 90,
                     EarliestHourForAction = "14:00",
                     Category = HealthCategory
                 },
@@ -314,7 +314,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 300,
                     IsSpontaneus = false,
                     ImageUrl = "relax",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "12:00",
                     Category = HealthCategory
                 },
@@ -324,7 +324,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 50,
                     IsSpontaneus = false,
                     ImageUrl = "relax",
-                    OffsetToPrepare = 30,
+                    OffsetToPrepare = 90,
                     EarliestHourForAction = "08:00",
                     Category = HealthCategory
                 },
@@ -334,7 +334,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 100,
                     IsSpontaneus = false,
                     ImageUrl = "relax",
-                    OffsetToPrepare = 15,
+                    OffsetToPrepare = 75,
                     EarliestHourForAction = "08:00",
                     Category = HealthCategory
                 },new Preference()
@@ -400,7 +400,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
                     ImageUrl = "book",
-                    OffsetToPrepare = 5,
+                    OffsetToPrepare = 45,
                     EarliestHourForAction = "08:00",
                     Category = CultureCategory
                 },
@@ -410,7 +410,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 30,
                     IsSpontaneus = false,
                     ImageUrl = "book",
-                    OffsetToPrepare = 10,
+                    OffsetToPrepare = 40,
                     EarliestHourForAction = "08:00",
                     Category = CultureCategory
                 },
@@ -420,7 +420,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
                     ImageUrl = "music",
-                    OffsetToPrepare = 10,
+                    OffsetToPrepare = 40,
                     EarliestHourForAction = "08:00",
                     Category = CultureCategory
                 },
@@ -430,7 +430,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
                     ImageUrl = "music",
-                    OffsetToPrepare = 10,
+                    OffsetToPrepare = 40,
                     EarliestHourForAction = "08:00",
                     Category = CultureCategory
                 },new Preference()
@@ -439,7 +439,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
                     ImageUrl = "music",
-                    OffsetToPrepare = 10,
+                    OffsetToPrepare = 40,
                     EarliestHourForAction = "08:00",
                     Category = CultureCategory
                 },
@@ -449,7 +449,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 60,
                     IsSpontaneus = false,
                     ImageUrl = "gamer",
-                    OffsetToPrepare = 10,
+                    OffsetToPrepare = 40,
                     EarliestHourForAction = "10:00",
                     Category = CultureCategory
                 },new Preference()
@@ -458,7 +458,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 120,
                     IsSpontaneus = false,
                     ImageUrl = "gamer",
-                    OffsetToPrepare = 20,
+                    OffsetToPrepare = 80,
                     EarliestHourForAction = "14:00",
                     Category = CultureCategory
                 },
@@ -468,7 +468,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 240,
                     IsSpontaneus = false,
                     ImageUrl = "party",
-                    OffsetToPrepare = 60,
+                    OffsetToPrepare = 120,
                     EarliestHourForAction = "17:00",
                     Category = CultureCategory
                 },new Preference()
@@ -477,7 +477,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 240,
                     IsSpontaneus = false,
                     ImageUrl = "party",
-                    OffsetToPrepare = 60,
+                    OffsetToPrepare = 120,
                     EarliestHourForAction = "17:00",
                     Category = CultureCategory
                 },
@@ -487,7 +487,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
                     ImageUrl = "arts",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "14:00",
                     Category = CultureCategory
                 },new Preference()
@@ -496,7 +496,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 200,
                     IsSpontaneus = false,
                     ImageUrl = "arts",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "14:00",
                     Category = CultureCategory
                 },
@@ -506,7 +506,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
                     ImageUrl = "arts",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "14:00",
                     Category = CultureCategory
                 },new Preference()
@@ -515,7 +515,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 180,
                     IsSpontaneus = false,
                     ImageUrl = "concert",
-                    OffsetToPrepare = 45,
+                    OffsetToPrepare = 105,
                     EarliestHourForAction = "17:00",
                     Category = CultureCategory
                 },
@@ -525,7 +525,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 200,
                     IsSpontaneus = false,
                     ImageUrl = "film",
-                    OffsetToPrepare = 15,
+                    OffsetToPrepare = 75,
                     EarliestHourForAction = "13:00",
                     Category = CultureCategory
                 },new Preference()
@@ -544,7 +544,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 30,
                     IsSpontaneus = true,
                     ImageUrl = "google.com",
-                    OffsetToPrepare = 10,
+                    OffsetToPrepare = 70,
                     EarliestHourForAction = "09:00",
                     Category = CultureCategory
                 },new Preference()
@@ -553,7 +553,7 @@ namespace Infrastructure.Data
                     AverageTimeInMinutes = 20,
                     IsSpontaneus = true,
                     ImageUrl = "google.com",
-                    OffsetToPrepare = 10,
+                    OffsetToPrepare = 70,
                     EarliestHourForAction = "08:00",
                     Category = LoveCategory
                 },
