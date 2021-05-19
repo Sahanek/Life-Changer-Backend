@@ -14,6 +14,10 @@ namespace Infrastructure.Identity
         public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options) : base(options)
         {
         }
+
+        public AppIdentityDbContext() : base()
+        {
+        }
         public DbSet<Preference> Preferences { get; set; }
 
         public DbSet<AppUserPreference> AppUserPreferences { get; set; }

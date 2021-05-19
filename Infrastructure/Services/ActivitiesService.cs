@@ -15,19 +15,49 @@ namespace Infrastructure.Services
     public class ActivitiesService : IActivitiesService
     {
         private readonly AppIdentityDbContext _dbContext;
-        private readonly IMapper _mapper;
-        private readonly UserManager<AppUser> _userManager;
 
-        public ActivitiesService(AppIdentityDbContext dbContext, IMapper mapper, UserManager<AppUser> userManager)
+        public ActivitiesService(AppIdentityDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
-            _userManager = userManager;
         }
+
+        public async Task<int> MinimumTimeRequired(AppUser user)
+        {
+            var UserWithStuff = await _dbContext
+                .Users
+                .Include(r => r.Categories)
+                .Where(u => u.Id == user.Id)
+                .FirstOrDefaultAsync();
+
+            var ListOfCategories = UserWithStuff.Categories;
+
+            if (ListOfCategories.Count() == 3)
+                return 110;                      //50 minutes is required for shortest activity
+
+            int RequiredTime=1000000;           //here is simply a big number for the algorithm
+
+            foreach(Category Cat in ListOfCategories)
+            {
+                if (Cat.Name == "Love" && RequiredTime > 240)
+                    RequiredTime = 240;
+                if (Cat.Name == "Culture and enterntainment" && RequiredTime > 110)
+                    RequiredTime = 110;
+                if (Cat.Name == "Sport and health" && RequiredTime > 230)
+                    RequiredTime = 230;
+            }
+
+            if (RequiredTime > 240)
+                return -1;
+
+            return RequiredTime;
+        }
+
+
 
         public Preference ChooseActivityByScore(IList<AppUserPreference> PossibleActivities)
         {
             var ListToDraw = new List<string>();
+            if (PossibleActivities.Count == 0) return null;
 
             foreach(AppUserPreference Activity in PossibleActivities)
             {
@@ -52,19 +82,25 @@ namespace Infrastructure.Services
 
 
         public async Task<IList<AppUserPreference>> GetUserAvailableActivities(AppUser user,
-            int TimeAvailableInMinutes)
+            int TimeAvailableInMinutes, DateTime StartTimeOfActivity)
         {
             var AvailableActivitiesOfUser = new List<AppUserPreference>();
+
+            var TimeOfDay = StartTimeOfActivity.TimeOfDay;
 
             AvailableActivitiesOfUser = await _dbContext
             .AppUserPreferences
             .Include(q => q.Preference)
             .Where(u => u.AppUserId == user.Id)
             .Where(p => p.Preference.IsSpontaneus == false) 
-            .Where(d=>d.Preference.AverageTimeInMinutes + 2*d.Preference.OffsetToPrepare <= TimeAvailableInMinutes)
+            .Where(d=>d.Preference.AverageTimeInMinutes + (2*d.Preference.OffsetToPrepare) <= TimeAvailableInMinutes)
             .ToListAsync();
 
-            return AvailableActivitiesOfUser;
+            var Act = AvailableActivitiesOfUser
+                .Where(c => TimeSpan.Parse(c.Preference.EarliestHourForAction) <= TimeOfDay)
+                .ToList();
+
+            return Act;
 
 
         }

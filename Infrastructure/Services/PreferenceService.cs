@@ -16,14 +16,10 @@ namespace Infrastructure.Services
     public class PreferenceService : IPreferenceService
     {
         private readonly AppIdentityDbContext _dbContext;
-        private readonly IMapper _mapper;
-        private readonly UserManager<AppUser> _userManager;
 
-        public PreferenceService(AppIdentityDbContext dbContext, IMapper mapper, UserManager<AppUser> userManager)
+        public PreferenceService(AppIdentityDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
-            _userManager = userManager;
         }
         
         public async Task<IEnumerable<Preference>> GetAll()
@@ -39,6 +35,9 @@ namespace Infrastructure.Services
 
         public async Task<IEnumerable<Preference>> GetPreferencesByCategory(List<int> Categories)
         {
+            if (Categories.Count() == 0 || Categories == null)
+                return null;
+
 
             var NbOfChosenCategories = Categories.Count();
 

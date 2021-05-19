@@ -1,49 +1,42 @@
 ﻿using API.Dtos;
-using API.Errors;
 using API.Helpers;
-using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
-using Google.Apis.Auth;
-using Google.Apis.Auth.OAuth2.Flows;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace API.Controllers
 {
+
+    /// <summary>
+    /// Controller to serve login and connection with calendar
+    /// </summary>
     public class AccountController : BaseApiController
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly SignInManager<AppUser> _signInManager;
         private readonly ITokenService _tokenService;
-        private readonly IMapper _mapper;
         private readonly GoogleVerification _googleVerification;
 
+
+        /// <summary>
+        /// Constructor with services, user, googleverification etc.
+        /// </summary>
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
-            ITokenService tokenService, IMapper mapper, GoogleVerification googleVerification)
+            ITokenService tokenService, GoogleVerification googleVerification)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
             _tokenService = tokenService;
-            _mapper = mapper;
             _googleVerification = googleVerification;
         }
 
-
+        /// <summary>
+        /// Login user via external service like google. Returns UserDto with Token needed for Authorization.
+        /// </summary>
+        /// <param name="externalAuth"> Dto contains provider e.g. Google and tokenId from returned that service </param>
+        /// <returns></returns>
         [HttpPost("ExternalLogin")]
         public async Task<ActionResult<UserDto>> ExternalLogin([FromBody] ExternalAuthDto externalAuth)
         {
@@ -60,7 +53,7 @@ namespace API.Controllers
 
                 if (user == null)
                 {
-                    user = new AppUser { Email = payload.Email, UserName = payload.Email };
+                    user = new AppUser { Email = payload.Email, UserName = payload.GivenName };
                     await _userManager.CreateAsync(user);
                     await _userManager.AddLoginAsync(user, info);
                 }
@@ -82,7 +75,10 @@ namespace API.Controllers
                 UserName = user.UserName
             };
         }
-
+        /// <summary>
+        /// This is a user for testing in f. ex. Postman so as  skip Google Verification etc.
+        /// </summary>
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("{email}")]
         public async Task<ActionResult<UserDto>> UserForTesting(string email)
         {
@@ -97,7 +93,9 @@ namespace API.Controllers
             };
         }
 
-
+        /// <summary>
+        /// Get info about current user
+        /// </summary>
         [Authorize]
         [HttpGet]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
@@ -113,6 +111,10 @@ namespace API.Controllers
             };
         }
 
+        /// <summary>
+        /// Return CalendarId for current logged in user.
+        /// </summary>
+        /// <returns></returns>
         [Authorize]
         [HttpGet("calendar")]
         public async Task<ActionResult<CalendarDto>> GetCalendarId()
@@ -124,6 +126,12 @@ namespace API.Controllers
             return new CalendarDto { Token = user.CalendarId };
         }
 
+
+        /// <summary>
+        /// Update CalendarId selected for saving events.
+        /// </summary>
+        /// <param name = "calendar"> Method replace CalendarId for current logged in user with CalendarId passed in body. </param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("updatecalendar")]
         public async Task<ActionResult<UserDto>> UpdateCalendarId(CalendarDto calendar)
@@ -142,7 +150,6 @@ namespace API.Controllers
                 Token = _tokenService.CreateToken(user),
                 UserName = user.UserName
             };
-
         }
 
         //[ApiExplorerSettings(IgnoreApi = true)]
@@ -411,7 +418,7 @@ namespace API.Controllers
         //    return NoContent();
         //}
 
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("testauth")]
         [Authorize]
         public ActionResult<string> GetSecret()

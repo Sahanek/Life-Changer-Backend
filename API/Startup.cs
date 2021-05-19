@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using API.Extensions;
 using API.Helpers;
 using API.Middleware;
@@ -21,6 +23,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -88,8 +91,11 @@ namespace API
             services.AddSwaggerGen(c =>
             {
                 c.EnableAnnotations();
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
-                c.DocumentFilter<JsonPatchDocumentFilter>();
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "LifeChanger", Version = "v1" , Description = "Application which change your life."});
+                //c.DocumentFilter<JsonPatchDocumentFilter>();
+                var xmlFile = "API.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
 
             //We do it better someday 

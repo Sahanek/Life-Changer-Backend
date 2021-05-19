@@ -14,6 +14,7 @@ namespace Core.Entities
         public bool IsSpontaneus { get; set; }
         public string ImageUrl { get; set; }
         public int OffsetToPrepare { get; set; }
+        public string EarliestHourForAction { get; set; }
         public Category Category { get; set; }
         public int CategoryID { get; set; }
         public List<AppUserPreference> AppUsers { get; set; } = new();
