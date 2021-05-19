@@ -93,6 +93,61 @@ namespace Tests
             Assert.Null(result);
         }
 
+        [Fact]
+        public async void UpdateUserCategories_AddingExistingCategoryReturnFalses()
+        {
+            //Arrange
+            await dbContext.Database.EnsureDeletedAsync();
+            await SeedDb_Preferences();
+            var user = await SeedDb_TestuserWithPreferences();
+
+            var loveCategory = dbContext.Categories.Where(x => x.Name =="Love")
+                .Select(x => x.Id).ToList();
+            //Act
+
+            var result = await preferenceservice.UpdateUserCategories(loveCategory, user);
+
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async void UpdateUserCategories_AddingNewCategoryReturnTrueAndDeleteOthers()
+        {
+            //Arrange
+            await dbContext.Database.EnsureDeletedAsync();
+            await SeedDb_Preferences();
+            var user = await SeedDb_TestuserWithPreferences();
+
+            var sportCategory = dbContext.Categories.Where(x => x.Name == "Sport and health")
+                .Select(x => x.Id).ToList();
+            var expectedCategories = new List<Category>()
+            {
+                dbContext.Categories.Where(x => x.Name == "Sport and health").Single()
+            };
+            //Act
+
+            var result = await preferenceservice.UpdateUserCategories(sportCategory, user);
+
+            dbContext.SaveChanges();
+            Assert.True(result);
+            Assert.Equal(expectedCategories, user.Categories);
+        }
+
+        [Fact]
+        public async void GetAppUserPreferces_AddingNewCategoryReturnTrueAndDeleteOthers()
+        {
+            //Arrange
+            await dbContext.Database.EnsureDeletedAsync();
+            await SeedDb_Preferences();
+            var user = await SeedDb_TestuserWithPreferences();
+
+            var expectedAppUserPreferences = user.Preferences.OrderByDescending(x => x.Id).ToList();
+            //Act
+
+            var result = await preferenceservice.GetAppUserPreferenceOfUser(user, false);
+
+            Assert.Equal(expectedAppUserPreferences, result);
+        }
 
         public async Task<int> SeedDb_Preferences()
         {
@@ -211,38 +266,10 @@ namespace Tests
 
         public async Task<AppUser> SeedDb_TestuserWithPreferences()
         {
-            var LoveCategory = new Category
-            {
-                Id = 1,
-                Name = "Love",
-                ImageUrl = "google.com"
-            };
+            var LoveCategory = dbContext.Categories
+                .Single(x => x.Name =="Love");
 
-            var preferences = new List<Preference>
-           {
-               new Preference()
-               {
-                   Id = 1,
-                   Name = "Go to restaurant",
-                   AverageTimeInMinutes = 120,
-                   IsSpontaneus = false,
-                   ImageUrl = "food",
-                   OffsetToPrepare = 45,
-                   Category = LoveCategory,
-                   CategoryID = LoveCategory.Id,
-               },
-               new Preference()
-               {
-                   Id = 2,
-                   Name = "Cook favorite dish",
-                   AverageTimeInMinutes = 60,
-                   IsSpontaneus = true,
-                   ImageUrl = "food",
-                   OffsetToPrepare = 30,
-                   Category = LoveCategory,
-                   CategoryID = LoveCategory.Id,
-               }
-           };
+            var preferences = dbContext.Preferences.Where(x => x.CategoryID == LoveCategory.Id).ToList();
 
             var user = new AppUser
             {
@@ -260,7 +287,7 @@ namespace Tests
                    {
                        AppUser = user,
                        AppUserId = user.Id,
-                       Id = 1,
+                       Id = 3,
                        Preference = preferences[0],
                        PreferenceId = preferences[0].Id,
                        Quantity = 0,
@@ -270,14 +297,15 @@ namespace Tests
                    {
                    AppUser = user,
                    AppUserId = user.Id,
-                   Id = 2,
+                   Id = 4,
                    Preference = preferences[1],
                    PreferenceId = preferences[1].Id,
                    Quantity = 0,
                    Score = 5
                }
 
-               }
+               },
+                Categories = new List<Category>(){LoveCategory},
             };
 
             await dbContext.Users.AddAsync(newUser);
