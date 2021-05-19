@@ -32,21 +32,21 @@ namespace Infrastructure.Services
             var ListOfCategories = UserWithStuff.Categories;
 
             if (ListOfCategories.Count() == 3)
-                return 50;                      //50 minutes is required for shortest activity
+                return 110;                      //50 minutes is required for shortest activity
 
             int RequiredTime=1000000;           //here is simply a big number for the algorithm
 
             foreach(Category Cat in ListOfCategories)
             {
-                if (Cat.Name == "Love" && RequiredTime > 100)
-                    RequiredTime = 100;
-                if (Cat.Name == "Culture and enterntainment" && RequiredTime > 50)
-                    RequiredTime = 50;
-                if (Cat.Name == "Sport and health" && RequiredTime > 110)
+                if (Cat.Name == "Love" && RequiredTime > 240)
+                    RequiredTime = 240;
+                if (Cat.Name == "Culture and enterntainment" && RequiredTime > 110)
                     RequiredTime = 110;
+                if (Cat.Name == "Sport and health" && RequiredTime > 230)
+                    RequiredTime = 230;
             }
 
-            if (RequiredTime > 110)
+            if (RequiredTime > 240)
                 return -1;
 
             return RequiredTime;
@@ -93,7 +93,7 @@ namespace Infrastructure.Services
             .Include(q => q.Preference)
             .Where(u => u.AppUserId == user.Id)
             .Where(p => p.Preference.IsSpontaneus == false) 
-            .Where(d=>d.Preference.AverageTimeInMinutes + 2*d.Preference.OffsetToPrepare <= TimeAvailableInMinutes)
+            .Where(d=>d.Preference.AverageTimeInMinutes + (2*d.Preference.OffsetToPrepare) <= TimeAvailableInMinutes)
             .ToListAsync();
 
             var Act = AvailableActivitiesOfUser
