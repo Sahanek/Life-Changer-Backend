@@ -126,7 +126,7 @@ namespace API.Controllers
 
             while ( TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
                 && ListOfActivites.Count() > 0
-                && ListOfEventsProposed.Count() <3)
+                && ListOfEventsProposed.Count() <2)
             {
                 EarliestTimeAvailable = TimeSlotAvailable.StartOfFreeSlot;
                 LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
@@ -226,7 +226,7 @@ namespace API.Controllers
 
             while (TimeSlotAvailable.Gap.TotalMinutes > MinimumRequiredTime
                 && ListOfActivites.Count() > 0
-                && ListOfEventsProposed.Count() <3)
+                && ListOfEventsProposed.Count() <2)
             {
                 EarliestTimeAvailable = TimeSlotAvailable.StartOfFreeSlot;
                 LatestTimeAvailable = TimeSlotAvailable.EndOfFreeSlot;
